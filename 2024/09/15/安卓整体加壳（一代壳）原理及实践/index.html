@@ -1,0 +1,919 @@
+
+<!DOCTYPE html><html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="hexo-theme" content="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.29.1" theme-name="Stellar" theme-version="1.29.1">
+  
+  <meta name="generator" content="Hexo 7.3.0">
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000">
+  <meta name="theme-color" content="#f9fafb">
+  
+  <title>安卓整体加壳（一代壳）原理及实践 - Joooook's Blog</title>
+
+  
+    <meta name="description" content="安卓整体加壳（一代壳）原理及实践目录 1 一代壳简介 1.1 DEX加密（也称落地加载） 1.2 相关脱壳方法   2 app启动流程 2.1 ActivityThread.java 2.2 LoadedApk.java 2.3 Instrumentation.java 2.4 Application.java 2.5 ActivityThread.java   3 基本原理 4 加壳实践 4.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="安卓整体加壳（一代壳）原理及实践">
+<meta property="og:url" content="http://example.com/2024/09/15/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/index.html">
+<meta property="og:site_name" content="Joooook&#39;s Blog">
+<meta property="og:description" content="安卓整体加壳（一代壳）原理及实践目录 1 一代壳简介 1.1 DEX加密（也称落地加载） 1.2 相关脱壳方法   2 app启动流程 2.1 ActivityThread.java 2.2 LoadedApk.java 2.3 Instrumentation.java 2.4 Application.java 2.5 ActivityThread.java   3 基本原理 4 加壳实践 4.">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_z5tGrLyVsa.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_843f89MsXv.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_2xi5dO1MsI.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_UftwEctp3E.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_emZH6vzAPX.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_hj1pqQHHPv.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_CTSSRiGc66.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_sNX26C4STU.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_jpImE4aA13.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_RKfuA6Q6nU.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/app%E8%B0%83%E7%94%A8_CSBqjPHS92.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_T3HK3143a3.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_V122nwLixh.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_K0HmIzrbII.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_DEDuyeCzba.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/1.drawio_cy5ANfgypj.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_V0UclrPWH4.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_n2LofCYJd2.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_97M9D3hQqO.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_jGN-mXtNcz.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_cKYkMDicHD.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/2.drawio_HunKyRO7Hj.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_hj1pqQHHPv.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_VAk35G7jOo.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_Vxh2WuPpP2.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_OLrT5qacKg.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_xT9X9dk4KQ.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_UbaeljwnpD.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_OoW9APvVOL.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_l8nUyXBWhG.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_Y5jPcAaSbF.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_2g75eCKSS5.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_PwReXXI_ST.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_LNeF0BBlnj.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_TtWipUTxyq.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_3XXS0AnNLo.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_y-SOnPgPAR.png">
+<meta property="article:published_time" content="2024-09-15T05:16:47.581Z">
+<meta property="article:modified_time" content="2024-09-15T05:23:20.578Z">
+<meta property="article:author" content="Joooook">
+<meta property="article:tag" content="2024">
+<meta property="article:tag" content="Android">
+<meta property="article:tag" content="Shell">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_z5tGrLyVsa.png">
+  
+  
+  
+  <meta name="keywords" content="2024,Android,Shell">
+
+  <!-- feed -->
+  
+
+  <link rel="stylesheet" href="/css/main.css?v=1.29.1">
+
+  
+
+  
+
+  
+</head>
+<body>
+
+<div class="l_body s:aa content tech" id="start" layout="post" ><aside class="l_left"><div class="leftbar-container">
+
+
+<header class="header"><div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg" style="opacity:0;background-image:url(https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/images/icon.jpg" onerror="javascript:this.classList.add('error');this.src='https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/image/2659360.svg';"></a><a class="title" href="/"><div class="main" ff="title">Joooook's Blog</div><div class="sub normal cap">Joooook</div><div class="sub hover cap" style="opacity:0">Per aspera ad astra</div></a></div></header>
+
+<div class="nav-area">
+<div class="search-wrapper" id="search-wrapper"><form class="search-form"><a class="search-button" onclick="document.getElementById(&quot;search-input&quot;).focus();"><svg t="1705074644177" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1560" width="200" height="200"><path d="M1008.839137 935.96571L792.364903 719.491476a56.783488 56.783488 0 0 0-80.152866 0 358.53545 358.53545 0 1 1 100.857314-335.166073 362.840335 362.840335 0 0 1-3.689902 170.145468 51.248635 51.248635 0 1 0 99.217358 26.444296 462.057693 462.057693 0 1 0-158.255785 242.303546l185.930047 185.725053a51.248635 51.248635 0 0 0 72.568068 0 51.248635 51.248635 0 0 0 0-72.978056z" p-id="1561"></path><path d="M616.479587 615.969233a50.428657 50.428657 0 0 0-61.498362-5.534852 174.655348 174.655348 0 0 1-177.525271 3.484907 49.403684 49.403684 0 0 0-58.833433 6.76482l-3.074918 2.869923a49.403684 49.403684 0 0 0 8.609771 78.10292 277.767601 277.767601 0 0 0 286.992355-5.739847 49.403684 49.403684 0 0 0 8.404776-76.667958z" p-id="1562"></path></svg></a><input type="text" class="search-input" id="search-input" placeholder="站内搜索"></form><div id="search-result"></div><div class="search-no-result">没有找到内容！</div></div>
+
+
+<nav class="menu dis-select"></nav>
+</div>
+<div class="widgets">
+
+
+<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">最近更新</span></div><div class="widget-body fs14"><a class="item title" href="/2024/09/15/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/"><span class="title">安卓整体加壳（一代壳）原理及实践</span></a><a class="item title" href="/2024/09/15/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/"><span class="title">安卓签名校验机制解析</span></a><a class="item title" href="/2024/09/15/%E5%AE%89%E5%8D%93%E5%BA%94%E7%94%A8%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/"><span class="title">安卓应用启动流程解析</span></a><a class="item title" href="/2024/09/15/%E5%AE%89%E5%8D%93%E7%B3%BB%E7%BB%9F%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/"><span class="title">安卓系统启动流程解析</span></a><a class="item title" href="/2024/09/15/%E5%AE%89%E5%8D%93%E6%9E%B6%E6%9E%84%E4%BB%8B%E7%BB%8D/"><span class="title">安卓架构介绍</span></a><a class="item title" href="/2024/09/15/DVM-ART%E4%BB%8B%E7%BB%8D/"><span class="title">DVM/ART介绍</span></a><a class="item title" href="/2024/04/29/H264%E7%BC%96%E7%A0%81%E5%88%86%E6%9E%90%E5%8F%8A%E9%9A%90%E5%86%99%E5%AE%9E%E8%B7%B5/"><span class="title">H264编码分析及隐写实践</span></a><a class="item title" href="/2024/04/23/GZCTF%E5%B9%B3%E5%8F%B0%E5%AF%B9%E6%8E%A5QQ%E6%9C%BA%E5%99%A8%E4%BA%BA/"><span class="title">GZCTF平台对接QQ机器人</span></a><a class="item title" href="/2024/03/22/%E7%AE%80%E6%9E%90Go%20SSTI%E5%88%A9%E7%94%A8/"><span class="title">简析Go SSTI利用</span></a><a class="item title" href="/2024/02/05/Hgame2024-Week1%20Writeup/"><span class="title">Hgame2024 Week1-Writeup</span></a></div></widget>
+</div>
+
+</div></aside><div class="l_main" id="main">
+
+
+
+
+
+<div class="article banner top">
+  <div class="content">
+    <div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
+<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Study/">Study</a> <span class="sep"></span> <a class="cap breadcrumb-link" href="/categories/Study/Android/">Android</a></div>
+<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-09-15T05:16:47.581Z">2024-09-15</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2024-09-15T05:23:20.578Z">2024-09-15</time></span></div></div></div>
+    
+    <div class="bottom only-title">
+      
+      <div class="text-area">
+        <h1 class="text title"><span>安卓整体加壳（一代壳）原理及实践</span></h1>
+        
+      </div>
+    </div>
+    
+  </div>
+  </div><article class="md-text content"><span id="more"></span>
+<h1 id="安卓整体加壳（一代壳）原理及实践"><a href="#安卓整体加壳（一代壳）原理及实践" class="headerlink" title="安卓整体加壳（一代壳）原理及实践"></a>安卓整体加壳（一代壳）原理及实践</h1><h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#1-%E4%B8%80%E4%BB%A3%E5%A3%B3%E7%AE%80%E4%BB%8B">1 一代壳简介</a><ul>
+<li><a href="#11-DEX%E5%8A%A0%E5%AF%86%E4%B9%9F%E7%A7%B0%E8%90%BD%E5%9C%B0%E5%8A%A0%E8%BD%BD">1.1 DEX加密（也称落地加载）</a></li>
+<li><a href="#12-%E7%9B%B8%E5%85%B3%E8%84%B1%E5%A3%B3%E6%96%B9%E6%B3%95">1.2 相关脱壳方法</a></li>
+</ul>
+</li>
+<li><a href="#2-app%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B">2 app启动流程</a><ul>
+<li><a href="#21-ActivityThreadjava">2.1 ActivityThread.java</a></li>
+<li><a href="#22-LoadedApkjava">2.2 LoadedApk.java</a></li>
+<li><a href="#23-Instrumentationjava">2.3 Instrumentation.java</a></li>
+<li><a href="#24-Applicationjava">2.4 Application.java</a></li>
+<li><a href="#25-ActivityThreadjava">2.5 ActivityThread.java</a></li>
+</ul>
+</li>
+<li><a href="#3-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86">3 基本原理</a></li>
+<li><a href="#4-%E5%8A%A0%E5%A3%B3%E5%AE%9E%E8%B7%B5">4 加壳实践</a><ul>
+<li><a href="#41-%E6%BA%90%E7%A8%8B%E5%BA%8F">4.1 源程序</a></li>
+<li><a href="#42-%E5%8A%A0%E5%A3%B3%E5%B7%A5%E5%85%B7">4.2 加壳工具</a></li>
+<li><a href="#43-%E8%84%B1%E5%A3%B3%E7%A8%8B%E5%BA%8F">4.3 脱壳程序</a><ul>
+<li><a href="#431-%E4%BB%A3%E7%90%86Application">4.3.1 代理Application</a></li>
+<li><a href="#432-%E8%AF%BB%E5%8F%96%E8%87%AA%E8%BA%ABapk">4.3.2 读取自身apk</a></li>
+<li><a href="#433-%E8%AF%BB%E5%8F%96dex">4.3.3 读取dex</a></li>
+<li><a href="#434-%E6%8F%90%E5%8F%96%E6%BA%90apk">4.3.4 提取源apk</a></li>
+<li><a href="#435-%E4%BF%AE%E6%AD%A3%E5%8A%A0%E8%BD%BD%E5%99%A8%E9%87%8D%E7%82%B9">4.3.5 修正加载器（重点）</a></li>
+<li><a href="#436-%E5%8A%A0%E8%BD%BD%E6%BA%90apk">4.3.6 加载源apk</a></li>
+<li><a href="#437-%E5%8A%A0%E8%BD%BD%E6%BA%90Application">4.3.7 加载源Application</a></li>
+<li><a href="#438-%E5%8A%A0%E8%BD%BD%E8%B5%84%E6%BA%90">4.3.8 加载资源</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#5-%E9%97%AE%E9%A2%98">5 问题</a></li>
+<li><a href="#6-%E5%BC%95%E7%94%A8">6 引用</a></li>
+</ul>
+<p>写在前面：写这篇文章真是呕心沥血，网上对一代壳的技术分析很多，但是有实践操作的文章少。一代壳虽然原理简单，但是实现细节很多，并且学习一代壳能够学习到很多二三代壳也用得到的原理和技术，写这篇文章反反复复看了很多其他大佬的文章，但难免还是会漏掉一些要点，比如双亲委派模型就一句话带过了，还需要读者们自己去看文章了解。由于整体加壳的方式是两个项目嵌套，想要写一步调试一步是有点麻烦的，写的过程中只能摸着石头过河，写完了再一起去debug，还是挺磨性子的。希望这篇文章能给刚入门脱壳的读者们带来一些启发，文中写的不严谨的地方欢迎指正。</p>
+<h1 id="1-一代壳简介"><a href="#1-一代壳简介" class="headerlink" title="1 一代壳简介"></a>1 一代壳简介</h1><h2 id="1-1-DEX加密（也称落地加载）"><a href="#1-1-DEX加密（也称落地加载）" class="headerlink" title="1.1 DEX加密（也称落地加载）"></a>1.1 DEX加密（也称落地加载）</h2><p>第一代壳将整个 apk 文件压缩加密到壳 dex 文件的后面，在壳 dex 文件上写上解压代码，动态加载执行，由于是加密整个 apk，在大型应用中很耗资源，因此这代壳很早就被放弃了但思路还是不变。其中这种加密还可以具体划分为几个方向，如下：</p>
+<ul>
+<li>Dex 字符串加密</li>
+<li>静态 DEX 文件整体加密解密</li>
+<li>资源加密（ xml 与 arsc 文件加密及十六进制加密）</li>
+<li>对抗反编译（针对反编译工具，如 apktool。利用反编译工具本身存在的缺陷，使得反编译失败，以此实现对反编译工具的抵抗）</li>
+<li>Ptrace 反调试、TracePid 值校验反调试</li>
+<li>自定义 DexClassLoader（主要是针对 dex 文件加固、加壳等情况）</li>
+<li>落地加载（ dex 可以在 apk 目录下看到）</li>
+</ul>
+<h2 id="1-2-相关脱壳方法"><a href="#1-2-相关脱壳方法" class="headerlink" title="1.2 相关脱壳方法"></a>1.2 相关脱壳方法</h2><ol>
+<li>内存 Dump 法</li>
+<li>缓存脱壳法</li>
+<li>文件监视法</li>
+<li>Hook 法</li>
+<li>定制系统法</li>
+<li>动态调试法</li>
+</ol>
+<h1 id="2-app启动流程"><a href="#2-app启动流程" class="headerlink" title="2 app启动流程"></a>2 app启动流程</h1><p><code>ActivityThread.main()</code>是进入<code>App</code>世界的大门，所以从<code>ActivityThread.main()</code>开始，了解一下<code>app</code>启动过程中的一些细节。如果十分了解<code>app</code>的启动流程，这部分就可以看的快一点。</p>
+<p>了解启动流程主要关注调用了<code>Application</code>什么方法，因为一代壳的实现是依赖于app启动时的一些初始化调用来加载或解密<code>dex</code>文件的。</p>
+<h2 id="2-1-ActivityThread-java"><a href="#2-1-ActivityThread-java" class="headerlink" title="2.1 ActivityThread.java"></a>2.1 ActivityThread.java</h2><p>源码地址：&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/" title="frameworks">frameworks</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/" title="base">base</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/" title="core">core</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/java/" title="java">java</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/java/android/" title="android">android</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/java/android/app/" title="app">app</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/java/android/app/ActivityThread.java" title="ActivityThread.java">ActivityThread.java</a></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_z5tGrLyVsa.png"></p>
+<p><code>attach</code>方法如下</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_843f89MsXv.png"></p>
+<p>这里的调用栈就不深入了，接下来会调用到<code>bindApplication</code>方法↓</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_2xi5dO1MsI.png"></p>
+<p>这里的<code>H</code>是<code>ActivityThread</code>的一个内置类</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_UftwEctp3E.png"></p>
+<p>在这个<code>H</code>类中有处理消息的逻辑</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_emZH6vzAPX.png"></p>
+<p>最终调用<code>handleBindApplication</code>，进行<code>app</code>实例化。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_hj1pqQHHPv.png"></p>
+<p>从实例化开始，就要进行深入了。<code>data.info</code>是一个<code>LoadedApk</code>类。</p>
+<h2 id="2-2-LoadedApk-java"><a href="#2-2-LoadedApk-java" class="headerlink" title="2.2 LoadedApk.java"></a>2.2 LoadedApk.java</h2><p>源码地址：&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/" title="frameworks">frameworks</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/" title="base">base</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/" title="core">core</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/java/" title="java">java</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/java/android/" title="android">android</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/java/android/app/" title="app">app</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/java/android/app/LoadedApk.java" title="LoadedApk.java">LoadedApk.java</a></p>
+<p><code>app</code>的创建进入到了<code>Instrumentation</code>的<code>newApplication</code>中</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_CTSSRiGc66.png"></p>
+<h2 id="2-3-Instrumentation-java"><a href="#2-3-Instrumentation-java" class="headerlink" title="2.3 Instrumentation.java"></a>2.3 Instrumentation.java</h2><p>源码地址：<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/" title="/frameworks">&#x2F;frameworks</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/" title="base">base</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/" title="core">core</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/java/" title="java">java</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/java/android/" title="android">android</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/java/android/app/" title="app">app</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/java/android/app/Instrumentation.java" title="Instrumentation.java">Instrumentation.java</a></p>
+<p><code>newApplication</code>有两种实现模式，这里看参数采用的应当是第一种。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_sNX26C4STU.png"></p>
+<p>两种方式都是先实例化<code>app</code>，然后调用<code>app.attach</code>。于是接下来看<code>attach</code>做了什么。</p>
+<h2 id="2-4-Application-java"><a href="#2-4-Application-java" class="headerlink" title="2.4 Application.java"></a>2.4 Application.java</h2><p>源码地址：&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/" title="frameworks">frameworks</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/" title="base">base</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/" title="core">core</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/java/" title="java">java</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/java/android/" title="android">android</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/java/android/app/" title="app">app</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/java/android/app/Application.java" title="Application.java">Application.java</a></p>
+<p>在<code>attach</code>中调用了<code>attachBaseContext</code></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_jpImE4aA13.png"></p>
+<h2 id="2-5-ActivityThread-java"><a href="#2-5-ActivityThread-java" class="headerlink" title="2.5 ActivityThread.java"></a>2.5 ActivityThread.java</h2><p>源码地址：&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/" title="frameworks">frameworks</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/" title="base">base</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/" title="core">core</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/java/" title="java">java</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/java/android/" title="android">android</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/java/android/app/" title="app">app</a>&#x2F;<a target="_blank" rel="noopener" href="http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/core/java/android/app/ActivityThread.java" title="ActivityThread.java">ActivityThread.java</a></p>
+<p>再回到<code>ActivityThread.java</code>的<code>handleBindApplication</code>中，还会有调用<code>Application</code>的<code>OnCreate</code>函数。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_RKfuA6Q6nU.png"></p>
+<p>至此可知<code>App</code>的启动流程是</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/app%E8%B0%83%E7%94%A8_CSBqjPHS92.png"></p>
+<h1 id="3-基本原理"><a href="#3-基本原理" class="headerlink" title="3 基本原理"></a>3 基本原理</h1><p>在<code>Application</code>启动流程结束之后才会进入<code>MainActivity</code>中的<code>attachBaseContext</code>函数、<code>onCreate</code>函数。</p>
+<p>所以壳要在程序正式执行前，也就是上面的流程中进行动态加载和类加载器的修正，这样才能对加密的<code>dex</code>进行释放，而一般的壳往往选择在<code>Application</code>中的<code>attachBaseContext</code>或<code>onCreate</code>函数进行。</p>
+<p><strong>简单点说，就是把源程序给藏起来，然后在外面包一层用于脱壳的程序，这个脱壳的程序会把源程序给释放出来，并通过反射机制，加载源程序。</strong></p>
+<h1 id="4-加壳实践"><a href="#4-加壳实践" class="headerlink" title="4 加壳实践"></a>4 加壳实践</h1><p>加壳之前，需要明确分为哪几步。</p>
+<ol>
+<li>生成一个源程序（安卓项目），一般来说是将源程序打包为<code>apk</code>之后藏起来，这样的好处在于源程序的各类资源也都被藏了起来。举一反三既然可以藏整个<code>apk</code>，那么也可以分开藏一些东西。</li>
+<li>写一个加壳工具，这个程序不是一个安卓项目，可以用任意语言（本文使用<code>python</code>）实现功能，就是一个工具。</li>
+<li>脱壳程序，确定了我们如何藏我们的<code>apk</code>文件之后，使用脱壳程序来释放源程序，并加载。</li>
+</ol>
+<p>构建完成之后我们<code>app</code>的入口应当在脱壳程序里。</p>
+<h2 id="4-1-源程序"><a href="#4-1-源程序" class="headerlink" title="4.1 源程序"></a>4.1 源程序</h2><p>简单新建项目，创建一个空<code>Activity</code>。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_T3HK3143a3.png"></p>
+<p>在<code>Activity</code>的<code>OnCreate</code>方法中打印一下。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Log.i(<span class="string">&quot;demo&quot;</span>, <span class="string">&quot;app:&quot;</span>+getApplicationContext());</span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_V122nwLixh.png"></p>
+<p>然后添加一个<code>MyAppliaction</code>类，并重写一下<code>OnCreate</code>，输出一下<code>Log</code>。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_K0HmIzrbII.png"></p>
+<h2 id="4-2-加壳工具"><a href="#4-2-加壳工具" class="headerlink" title="4.2 加壳工具"></a>4.2 加壳工具</h2><p>将按照下图的结构构建新<code>dex</code></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_DEDuyeCzba.png"></p>
+<p>这里为了理解画了一个流程图</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/1.drawio_cy5ANfgypj.png"></p>
+<p>这里没有对<code>apk</code>数据进行处理，如有需要修改<code>process_apk_data</code>即可。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> hashlib</span><br><span class="line"><span class="keyword">import</span> os.path</span><br><span class="line"><span class="keyword">import</span> shutil</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> zlib</span><br><span class="line"><span class="keyword">import</span> zipfile</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">process_apk_data</span>(<span class="params">apk_data:<span class="built_in">bytes</span></span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    用于处理apk数据，比如加密，压缩等，都可以放在这里。</span></span><br><span class="line"><span class="string">    :param apk_data:</span></span><br><span class="line"><span class="string">    :return:</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">return</span> apk_data</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用前需要修改的部分</span></span><br><span class="line">keystore_path=<span class="string">&#x27;demo1.keystore&#x27;</span></span><br><span class="line">keystore_password=<span class="string">&#x27;123456&#x27;</span></span><br><span class="line">src_apk_file_path= <span class="string">&#x27;/Users/zhou39512/AndroidStudioProjects/MyApplication/app/build/outputs/apk/debug/app-debug.apk&#x27;</span></span><br><span class="line">shell_apk_file_path= <span class="string">&#x27;/Users/zhou39512/AndroidStudioProjects/Unshell/app/build/outputs/apk/debug/app-debug.apk&#x27;</span></span><br><span class="line">buildtools_path=<span class="string">&#x27;~/Library/Android/sdk/build-tools/34.0.0/&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 承载apk的文件名</span></span><br><span class="line">carrier_file_name= <span class="string">&#x27;classes.dex&#x27;</span></span><br><span class="line"><span class="comment"># 中间文件夹</span></span><br><span class="line">intermediate_dir= <span class="string">&#x27;intermediates&#x27;</span></span><br><span class="line">intermediate_apk_name=<span class="string">&#x27;app-debug.apk&#x27;</span></span><br><span class="line">intermediate_aligned_apk_name=<span class="string">&#x27;app-debug-aligned.apk&#x27;</span></span><br><span class="line">intermediate_apk_path=os.path.join(intermediate_dir,intermediate_apk_name)</span><br><span class="line">intermediate_carrier_path=os.path.join(intermediate_dir, carrier_file_name)</span><br><span class="line">intermediate_aligned_apk_path=os.path.join(intermediate_dir,intermediate_aligned_apk_name)</span><br><span class="line"><span class="keyword">if</span> os.path.exists(intermediate_dir):</span><br><span class="line">    shutil.rmtree(intermediate_dir)</span><br><span class="line">os.mkdir(intermediate_dir)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 解压apk</span></span><br><span class="line">shell_apk_file=zipfile.ZipFile(shell_apk_file_path)</span><br><span class="line">shell_apk_file.extract(carrier_file_name,intermediate_dir)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查找dex</span></span><br><span class="line"><span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(os.path.join(intermediate_dir, carrier_file_name)):</span><br><span class="line">    <span class="keyword">raise</span> FileNotFoundError(<span class="string">f&#x27;<span class="subst">&#123;carrier_file_name&#125;</span> not found&#x27;</span>)</span><br><span class="line"></span><br><span class="line">src_dex_file_path= os.path.join(intermediate_dir, carrier_file_name)</span><br><span class="line"></span><br><span class="line"><span class="comment">#读取</span></span><br><span class="line">src_apk_file=<span class="built_in">open</span>(src_apk_file_path, <span class="string">&#x27;rb&#x27;</span>)</span><br><span class="line">src_dex_file=<span class="built_in">open</span>(src_dex_file_path, <span class="string">&#x27;rb&#x27;</span>)</span><br><span class="line"></span><br><span class="line">src_apk_data=src_apk_file.read()</span><br><span class="line">src_dex_data=src_dex_file.read()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 处理apk数据</span></span><br><span class="line">processed_apk_data=process_apk_data(src_apk_data)</span><br><span class="line">processed_apk_size=<span class="built_in">len</span>(processed_apk_data)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 构建新dex数据</span></span><br><span class="line">new_dex_data=src_dex_data+processed_apk_data+<span class="built_in">int</span>.to_bytes(processed_apk_size,<span class="number">8</span>,<span class="string">&#x27;little&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新文件大小</span></span><br><span class="line">file_size=<span class="built_in">len</span>(processed_apk_data)+<span class="built_in">len</span>(src_dex_data)+<span class="number">8</span></span><br><span class="line">new_dex_data=new_dex_data[:<span class="number">32</span>]+<span class="built_in">int</span>.to_bytes(file_size,<span class="number">4</span>,<span class="string">&#x27;little&#x27;</span>)+new_dex_data[<span class="number">36</span>:]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新sha1摘要</span></span><br><span class="line">signature=hashlib.sha1().digest()</span><br><span class="line">new_dex_data=new_dex_data[:<span class="number">12</span>]+signature+new_dex_data[<span class="number">32</span>:]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新checksum</span></span><br><span class="line">checksum=zlib.adler32(new_dex_data[<span class="number">12</span>:])</span><br><span class="line">new_dex_data=new_dex_data[:<span class="number">8</span>]+<span class="built_in">int</span>.to_bytes(checksum,<span class="number">4</span>,<span class="string">&#x27;little&#x27;</span>)+new_dex_data[<span class="number">12</span>:]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 写入新dex</span></span><br><span class="line">intermediate_carrier_file= <span class="built_in">open</span>(intermediate_carrier_path, <span class="string">&#x27;wb&#x27;</span>)</span><br><span class="line">intermediate_carrier_file.write(new_dex_data)</span><br><span class="line">intermediate_carrier_file.close()</span><br><span class="line">src_apk_file.close()</span><br><span class="line">src_dex_file.close()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加环境变量，为重打包做准备</span></span><br><span class="line">os.environ.update(&#123;<span class="string">&#x27;PATH&#x27;</span>:os.environ.get(<span class="string">&#x27;PATH&#x27;</span>)+<span class="string">f&#x27;:<span class="subst">&#123;buildtools_path&#125;</span>&#x27;</span>&#125;)</span><br><span class="line"><span class="comment"># 重打包</span></span><br><span class="line">r=os.popen(<span class="string">f&quot;cp <span class="subst">&#123;shell_apk_file_path&#125;</span> <span class="subst">&#123;intermediate_apk_path&#125;</span>&quot;</span>).read()</span><br><span class="line"><span class="built_in">print</span>(r)</span><br><span class="line">os.chdir(intermediate_dir)</span><br><span class="line">r=os.popen(<span class="string">f&#x27;zip <span class="subst">&#123;intermediate_apk_name&#125;</span> <span class="subst">&#123;carrier_file_name&#125;</span>&#x27;</span>).read()</span><br><span class="line">os.chdir(<span class="string">&#x27;../&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(r)</span><br><span class="line"><span class="comment"># 对齐</span></span><br><span class="line">r=os.popen(<span class="string">f&#x27;zipalign 4 <span class="subst">&#123;intermediate_apk_path&#125;</span> <span class="subst">&#123;intermediate_aligned_apk_path&#125;</span>&#x27;</span>).read()</span><br><span class="line"><span class="built_in">print</span>(r)</span><br><span class="line"><span class="comment"># 签名</span></span><br><span class="line">r=os.popen(<span class="string">f&#x27;apksigner sign -ks <span class="subst">&#123;keystore_path&#125;</span> --ks-pass pass:<span class="subst">&#123;keystore_password&#125;</span> <span class="subst">&#123;intermediate_aligned_apk_path&#125;</span>&#x27;</span>).read()</span><br><span class="line"><span class="built_in">print</span>(r)</span><br><span class="line">r=os.popen(<span class="string">f&#x27;cp <span class="subst">&#123;intermediate_aligned_apk_path&#125;</span> ./app-out.apk&#x27;</span>).read()</span><br><span class="line"><span class="built_in">print</span>(r)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;Success&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这里涉及到重打包的过程，具体可以看安卓打包流程。这里需要用安卓<code>SDK</code>中的<code>zipalign</code>和<code>apksigner</code>进行对齐和重打包。</p>
+<h2 id="4-3-脱壳程序"><a href="#4-3-脱壳程序" class="headerlink" title="4.3 脱壳程序"></a>4.3 脱壳程序</h2><p>接下来编写套在源程序外面的脱壳程序。由于我们最终需要运行的是我们的源程序，所以我们必须在启动流程调用<code>Application</code>的<code>OnCreate</code>之前释放出源程序，并替换<code>Application</code>为我们的源程序<code>Application</code>实例（原来是脱壳程序的<code>Application</code>实例）。</p>
+<p>我们在基本原理这一节中研究了启动流程，所以在<code>Application</code>的<code>OnCreate</code>之前，有一个<code>attachBaseContext</code>方法，我们可以通过重写该方法来实现上面的效果。</p>
+<h3 id="4-3-1-代理Application"><a href="#4-3-1-代理Application" class="headerlink" title="4.3.1 代理Application"></a>4.3.1 代理Application</h3><p>这里我们要写一个代理<code>Application</code>，作为<code>app</code>的<code>Application</code>实例。并重写一下<code>attachBaseContext</code>。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ProxyApplication</span> <span class="keyword">extends</span> <span class="title class_">Application</span> &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">attachBaseContext</span><span class="params">(Context base)</span> &#123;</span><br><span class="line">        Log.i(<span class="string">&quot;demo&quot;</span>,<span class="string">&quot;attachBaseContext&quot;</span>);</span><br><span class="line">        <span class="built_in">super</span>.attachBaseContext(base);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>然后要修改<code>AndroidManifest.xml</code>，将<code>Application</code>的实例改为我们自定义的<code>ProxyApplication</code></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_V0UclrPWH4.png"></p>
+<p>之后运行。在<code>Logcat</code>中看到输出了<code>log</code>则说明成功。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_n2LofCYJd2.png"></p>
+<h3 id="4-3-2-读取自身apk"><a href="#4-3-2-读取自身apk" class="headerlink" title="4.3.2 读取自身apk"></a>4.3.2 读取自身apk</h3><p>在<code>Application</code>中，需要获取到自身的<code>apk</code>文件。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> ZipFile <span class="title function_">getApkZip</span><span class="params">()</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">    Log.i(<span class="string">&quot;demo&quot;</span>, <span class="built_in">this</span>.getApplicationInfo().sourceDir);</span><br><span class="line">    <span class="type">ZipFile</span> <span class="variable">apkZipFile</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ZipFile</span>(<span class="built_in">this</span>.getApplicationInfo().sourceDir);</span><br><span class="line">    <span class="keyword">return</span> apkZipFile;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们先测试一下，打印看看<code>this.getApplicationInfo().sourceDir</code>是什么</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_97M9D3hQqO.png"></p>
+<p>发现是一个缓存存储<code>apk</code>的地址，并且就是<code>apk</code>的路径（而非文件夹路径）。</p>
+<h3 id="4-3-3-读取dex"><a href="#4-3-3-读取dex" class="headerlink" title="4.3.3 读取dex"></a>4.3.3 读取dex</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="type">byte</span>[] readDexFileFromApk() <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">    <span class="comment">/* 从本体apk中获取dex文件 */</span></span><br><span class="line">    <span class="type">ZipFile</span> <span class="variable">apkZip</span> <span class="operator">=</span> <span class="built_in">this</span>.getApkZip();</span><br><span class="line">    <span class="type">ZipEntry</span> <span class="variable">zipEntry</span> <span class="operator">=</span> apkZip.getEntry(<span class="string">&quot;classes.dex&quot;</span>);</span><br><span class="line">    <span class="type">InputStream</span> <span class="variable">inputStream</span> <span class="operator">=</span> apkZip.getInputStream(zipEntry);</span><br><span class="line">    <span class="type">byte</span>[] buffer = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">1024</span>];</span><br><span class="line">    <span class="type">ByteArrayOutputStream</span> <span class="variable">baos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayOutputStream</span>();</span><br><span class="line">    <span class="type">int</span> length;</span><br><span class="line">    <span class="keyword">while</span> ((length = inputStream.read(buffer)) &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        baos.write(buffer, <span class="number">0</span>, length);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> baos.toByteArray();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-4-提取源apk"><a href="#4-3-4-提取源apk" class="headerlink" title="4.3.4 提取源apk"></a>4.3.4 提取源apk</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="type">byte</span>[] splitSrcApkFromDex(<span class="type">byte</span>[] dexFileData) &#123;</span><br><span class="line">    <span class="comment">/* 从dex文件中分离源apk文件 */</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">length</span> <span class="operator">=</span> dexFileData.length;</span><br><span class="line">    <span class="type">ByteBuffer</span> <span class="variable">bb</span> <span class="operator">=</span> ByteBuffer.wrap(Arrays.copyOfRange(dexFileData, length - <span class="number">8</span>, length));</span><br><span class="line">    bb.order(java.nio.ByteOrder.LITTLE_ENDIAN); <span class="comment">// 设置为小端模式</span></span><br><span class="line">    <span class="type">long</span> <span class="variable">processedSrcApkDataSize</span> <span class="operator">=</span> bb.getLong(); <span class="comment">// 读取这8个字节作为long类型的值</span></span><br><span class="line">    <span class="type">byte</span>[] processedSrcApkData=Arrays.copyOfRange(dexFileData, (<span class="type">int</span>) (length - <span class="number">8</span> - processedSrcApkDataSize), length - <span class="number">8</span>);</span><br><span class="line">    <span class="type">byte</span>[] srcApkData=reverseProcessApkData(processedSrcApkData);</span><br><span class="line">    <span class="keyword">return</span> srcApkData;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-5-修正加载器（重点）"><a href="#4-3-5-修正加载器（重点）" class="headerlink" title="4.3.5 修正加载器（重点）"></a>4.3.5 修正加载器（重点）</h3><p>这里开始需要了解双亲委派模型，简单而言就是<code>java</code>中的类加载器有父子关系，当某个加载器需要加载某个类的时候，先会交给其父类，如果加载过了就直接返回，如此往上，如果父加载器都加载不了，再抛回来自己加载。</p>
+<p>关于加载源apk，这里有两个细节且重要的问题需要思考清楚。从这里开始希望大家放慢阅读速度。</p>
+<ul>
+<li><strong>如何加载</strong>**<code>dex</code>**<strong>文件？</strong></li>
+<li><strong>如何让加载之后的</strong>**<code>Application</code>**<strong>进入后续的加载流程？</strong></li>
+</ul>
+<p>这里拿一张非常重要的图</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_jGN-mXtNcz.png"></p>
+<p><strong>首先解决第一个问题，如何加载</strong>**<code>dex</code>**<strong>文件？</strong></p>
+<p>引用佬的文章介绍一下<code>BaseDexClassLoader</code>类加载器</p>
+<blockquote>
+<p>Android里边的<code>BaseDexClassLoader</code>可以实现在运行的时候加载在编译时未知的dex文件，经过此加载器的加载，ART虚拟机内存中会形成相应的数据结构，对应的dex文件也会由mmap映射到虚拟内存当中，通过此加载器的<code>loadClass(String className, boolean resolve)</code>方法就可以得到类的Class对象，从而可以使用该类。</p>
+<p>查看源码可以看到<code>PathClassLoader</code>是继承自<code>BaseDexClassLoader</code>的，而<code>PathClassLoader</code>还有另外两个兄弟: <code>InMemoryDexClassLoader</code>以及<code>DexClassLoader</code>，而壳程序很多都使用了这两个类加载器来加载解密后的dex文件。其中<code>InMemoryDexClassLoader</code>是Android8.0以后新增的类，可以实现所谓的”不落地加载”。</p>
+<p>作者：Jerry_Deng<br>链接：<a target="_blank" rel="noopener" href="https://juejin.cn/post/6962096676576165918" title="https://juejin.cn/post/6962096676576165918">https://juejin.cn/post/6962096676576165918</a><br>来源：稀土掘金<br>著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。</p>
+</blockquote>
+<p>总结一下，<code>InMemoryDexClassLoader</code>、<code>DexClassLoader</code>、<code>PathClassLoader</code>都继承自<code>BaseDexClassLoader</code>，我们可以用他们来加载<code>dex</code>。</p>
+<p><strong>第二个问题，如何让加载之后的</strong>**<code>Application</code>**<strong>进入后续的加载流程？</strong></p>
+<p>后续的加载流程指的就是<code>app</code>组件（比如<code>Activity</code>）的加载，而加载组件时，使用的是加载应用程序的<code>ClassLoader</code>。</p>
+<p><strong>如若不做任何处理，仅仅在</strong>**<code>attachBaseContext</code><strong><strong>方法中使用上面讲的某个类加载器对</strong></strong><code>dex</code><strong><strong>加载，后续加载</strong></strong>源程序的组件<strong><strong>时会出现</strong></strong><code>ClassNotFoundException</code>**<strong>的错误，为什么会这样？</strong></p>
+<p>这是因为如果仅仅在<code>attachBaseContext</code>方法中使用类加载器加载<code>dex</code>，之后加载组件时使用的<code>ClassLoader</code>和我们使用的加载器不同，并且，加载组件的<code>ClassLoader</code>通过双亲委派模型发现没有人能加载组件类（因为组件类在我们的<code>dex</code>中），导致<code>ClassNotFoundException</code>。</p>
+<p>还记得<code>BaseDexClassLoader</code>吗，其有一个<code>DexPathList</code>，记录了已加载的<code>dex</code>文件路径。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_cKYkMDicHD.png"></p>
+<p>加载组件时对应的<code>BaseDexClassLoader</code>的<code>DexPathList</code>是没有源程序的<code>dex</code>路径的，如果尝试让<code>BaseDexClassLoader</code>加载不在这个列表中的类，就会报<code>ClassNotFoundException</code>。</p>
+<p>因此有两种方法可以解决这个问题。</p>
+<ol>
+<li><p>既然使用的加载器不同，那么改成相同的不就行了。</p>
+<p>通过反射获取到<code>LoadedApk</code>，修改其<code>mClassLoader</code>为我们加载<code>dex</code>文件的<code>ClassLoader</code>实例，这样后续试图加载组件类的时候，就能找到相应的类。</p>
+</li>
+<li><p>通过打破原有双亲委派关系，添加我们的<code>ClassLoader</code>进入关系网。</p>
+<p>原先的<code>mClassLoader</code>是<code>PathClassLoader</code>，其在双亲委派关系中的父亲是<code>BootClassLoader</code>，所以只要将我们的<code>ClassLoader</code>添加进他们两个之间即可。也就是将<code>PathClassLoader</code>的父亲设置为我们自己的<code>ClassLoader</code>，再将我们自己的<code>ClassLoader</code>的父亲设置为<code>BootClassLoader</code>。如下图</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/2.drawio_HunKyRO7Hj.png"></p>
+</li>
+</ol>
+<p>理解完以上这些，可以开始实践了。</p>
+<hr>
+<p>第一种方法，需要思考如何拿到<code>LoadedApk</code>。在启动流程的<code>handleBindApplication</code>中，<code>data.info</code>就是我们要拿到的<code>LoadedApk</code>。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_hj1pqQHHPv.png"></p>
+<p>向上找到<code>data.info</code>初始化的地方。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_VAk35G7jOo.png"></p>
+<p>跟进方法</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_Vxh2WuPpP2.png"></p>
+<p>关键代码</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_OLrT5qacKg.png"></p>
+<p>所以我们要从<code>mPackages</code>里面找<code>LoadedApk</code>。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">replaceClassLoader1</span><span class="params">(Context context,DexClassLoader dexClassLoader)</span>&#123;</span><br><span class="line">    <span class="type">ClassLoader</span> <span class="variable">pathClassLoader</span> <span class="operator">=</span> ProxyApplication.class.getClassLoader();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 1.通过currentActivityThread方法获取ActivityThread实例</span></span><br><span class="line">        <span class="type">Class</span> <span class="variable">ActivityThread</span> <span class="operator">=</span> pathClassLoader.loadClass(<span class="string">&quot;android.app.ActivityThread&quot;</span>);</span><br><span class="line">        <span class="type">Method</span> <span class="variable">currentActivityThread</span> <span class="operator">=</span> ActivityThread.getDeclaredMethod(<span class="string">&quot;currentActivityThread&quot;</span>);</span><br><span class="line">        <span class="type">Object</span> <span class="variable">activityThreadObj</span> <span class="operator">=</span> currentActivityThread.invoke(<span class="literal">null</span>);</span><br><span class="line">        <span class="comment">// 2.拿到mPackagesObj</span></span><br><span class="line">        <span class="type">Field</span> <span class="variable">mPackagesField</span> <span class="operator">=</span> ActivityThread.getDeclaredField(<span class="string">&quot;mPackages&quot;</span>);</span><br><span class="line">        mPackagesField.setAccessible(<span class="literal">true</span>);</span><br><span class="line">        <span class="type">ArrayMap</span> <span class="variable">mPackagesObj</span> <span class="operator">=</span> (ArrayMap) mPackagesField.get(activityThreadObj);</span><br><span class="line">        <span class="comment">// 3.拿到LoadedApk</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">packageName</span> <span class="operator">=</span> context.getPackageName();</span><br><span class="line">        <span class="type">WeakReference</span> <span class="variable">wr</span> <span class="operator">=</span> (WeakReference) mPackagesObj.get(packageName);</span><br><span class="line">        <span class="type">Object</span> <span class="variable">LoadApkObj</span> <span class="operator">=</span> wr.get();</span><br><span class="line">        <span class="comment">// 4.拿到mClassLoader</span></span><br><span class="line">        <span class="type">Class</span> <span class="variable">LoadedApkClass</span> <span class="operator">=</span> pathClassLoader.loadClass(<span class="string">&quot;android.app.LoadedApk&quot;</span>);</span><br><span class="line">        <span class="type">Field</span> <span class="variable">mClassLoaderField</span> <span class="operator">=</span> LoadedApkClass.getDeclaredField(<span class="string">&quot;mClassLoader&quot;</span>);</span><br><span class="line">        mClassLoaderField.setAccessible(<span class="literal">true</span>);</span><br><span class="line">        <span class="type">Object</span> <span class="variable">mClassLoader</span> <span class="operator">=</span>mClassLoaderField.get(LoadApkObj);</span><br><span class="line">        Log.i(<span class="string">&quot;mClassLoader&quot;</span>,mClassLoader.toString());</span><br><span class="line">        <span class="comment">// 5.将系统组件ClassLoader给替换</span></span><br><span class="line">        mClassLoaderField.set(LoadApkObj,dexClassLoader);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        Log.i(<span class="string">&quot;demo&quot;</span>, <span class="string">&quot;error:&quot;</span> + Log.getStackTraceString(e));</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-6-加载源apk"><a href="#4-3-6-加载源apk" class="headerlink" title="4.3.6 加载源apk"></a>4.3.6 加载源apk</h3><p>我们使用<code>DexClassLoader</code>加载<code>dex</code>，还需要解决几个参数。</p>
+<ul>
+<li><code>dexPath</code>：<code>dex</code>文件路径</li>
+<li><code>optimizedDirectory</code>： <code>dex</code> 优化后存放的位置，在 <code>ART</code> 上，会执行 <code>oat</code> 对 <code>dex</code> 进行优化，生成机器码，这里就是存放优化后的 <code>odex</code> 文件的位置。</li>
+<li><code>librarySearchPath</code>：<code>native</code> 依赖的位置</li>
+<li><code>parent</code>：双亲委派中的父亲，这里是<code>PathClassLoader</code>。</li>
+</ul>
+<p><code>Context.getDir</code>方法是在<code>app</code>的目录下新建<code>app_</code>的文件夹。比如打印<code>base.getDir(&quot;opt_dex&quot;,0)</code>，结果是 <code>/data/user/0/com.xxx.unshell/app_opt_dex</code></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_xT9X9dk4KQ.png"></p>
+<p>代码如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">attachBaseContext</span><span class="params">(Context base)</span> &#123;</span><br><span class="line">    Log.i(<span class="string">&quot;demo&quot;</span>, <span class="string">&quot;attachBaseContext&quot;</span>);</span><br><span class="line">    <span class="built_in">super</span>.attachBaseContext(base);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="type">byte</span>[] dexFileData=<span class="built_in">this</span>.readDexFileFromApk();</span><br><span class="line">        <span class="type">byte</span>[] srcApkData=<span class="built_in">this</span>.splitSrcApkFromDex(dexFileData);</span><br><span class="line">        <span class="comment">// 创建储存apk的文件夹，写入src.apk</span></span><br><span class="line">        File apkDir=base.getDir(<span class="string">&quot;apk_out&quot;</span>,MODE_PRIVATE);</span><br><span class="line">        srcApkPath=apkDir.getAbsolutePath()+<span class="string">&quot;/src.apk&quot;</span>;</span><br><span class="line">        <span class="type">File</span> <span class="variable">srcApkFile</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">File</span>(srcApkPath);</span><br><span class="line">        srcApkFile.setWritable(<span class="literal">true</span>);</span><br><span class="line">        FileOutputStream fos=<span class="keyword">new</span> <span class="title class_">FileOutputStream</span>(srcApkFile);</span><br><span class="line">        Log.i(<span class="string">&quot;demo&quot;</span>, String.format(<span class="string">&quot;%d&quot;</span>,srcApkData.length));</span><br><span class="line">        fos.write(srcApkData);</span><br><span class="line">        fos.close();</span><br><span class="line">        srcApkFile.setReadOnly(); <span class="comment">// 受安卓安全策略影响，dex必须为只读</span></span><br><span class="line">        Log.i(<span class="string">&quot;demo&quot;</span>,<span class="string">&quot;Write src.apk into &quot;</span>+srcApkPath);</span><br><span class="line">        <span class="comment">// 新建加载器</span></span><br><span class="line">        <span class="type">File</span> <span class="variable">optDir</span> <span class="operator">=</span>base.getDir(<span class="string">&quot;opt_dex&quot;</span>,MODE_PRIVATE);</span><br><span class="line">        <span class="type">File</span> <span class="variable">libDir</span> <span class="operator">=</span>base.getDir(<span class="string">&quot;lib_dex&quot;</span>,MODE_PRIVATE);</span><br><span class="line">        optDirPath =optDir.getAbsolutePath();</span><br><span class="line">        libDirPath =libDir.getAbsolutePath();</span><br><span class="line">        <span class="type">ClassLoader</span> <span class="variable">pathClassLoader</span> <span class="operator">=</span> ProxyApplication.class.getClassLoader();</span><br><span class="line">        DexClassLoader dexClassLoader=<span class="keyword">new</span> <span class="title class_">DexClassLoader</span>(srcApkPath, optDirPath, libDirPath,pathClassLoader);</span><br><span class="line">        Log.i(<span class="string">&quot;demo&quot;</span>,<span class="string">&quot;Successfully initiate DexClassLoader.&quot;</span>);</span><br><span class="line">        <span class="comment">// 修正加载器</span></span><br><span class="line">        replaceClassLoader1(base,dexClassLoader);</span><br><span class="line">        Log.i(<span class="string">&quot;demo&quot;</span>,<span class="string">&quot;ClassLoader replaced.&quot;</span>);</span><br><span class="line"></span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        Log.i(<span class="string">&quot;demo&quot;</span>, <span class="string">&quot;error:&quot;</span> + Log.getStackTraceString(e));</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当我们替换掉加载器之后，<code>app</code>加载流程走完，会加载<code>Activity</code>，此时我们为了让系统加载我们源程序的<code>Activity</code>，我们需要修改<code>xml</code>文件，将脱壳程序的<code>Activity</code>入口替换为源程序的入口。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_UbaeljwnpD.png"></p>
+<p>之后我们<code>build apk</code>，然后用加壳程序处理，并安装。</p>
+<p>启动程序，查看<code>log</code>，发现了我们在源程序中写的<code>Log</code>，说明启动源程序的<code>Activity</code>成功。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_OoW9APvVOL.png"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_l8nUyXBWhG.png"></p>
+<p>加载成功！</p>
+<h3 id="4-3-7-加载源Application"><a href="#4-3-7-加载源Application" class="headerlink" title="4.3.7 加载源Application"></a>4.3.7 加载源Application</h3><p>到了这里加壳的核心部分已经结束了，接下来都是补充的部分。</p>
+<p>如果源程序也有自定义的<code>Application</code>，我们就需要重新<code>makeApplication</code>，进入到源程序的<code>Application</code>，保证程序的完整生命周期。</p>
+<ul>
+<li><p>注册<code>application</code>(用<code>LoadedApk</code>中的<code>makeApplication</code>方法注册)。</p>
+<p>为了使用<code>makeApplication</code>重新注册<code>application</code>，需要先把<code>mApplication</code>置空</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_Y5jPcAaSbF.png"></p>
+<p>并且还需要在在<code>ActivityThread</code>下的链表<code>mAllApplications</code>中移除<code>mInitialApplication</code>。<code>mAllApplications</code>存放的是所有的应用，<code>mInitialApplication</code>存放的是初始化的应用（即当前壳应用）。把当前的壳应用，从现有的应用中移除掉，然后在<code>makeApplication</code>方法中会把新构建的加入到里面去。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_2g75eCKSS5.png"></p>
+<p>之后，替换<code>ActivityThread</code>中<code>mInitialApplication</code>为刚刚<code>makeApplication</code>创建的<code>app</code>。</p>
+<p>总结操作流程就是</p>
+<ul>
+<li>将<code>LoadedApk</code>的<code>mApplication</code>置空</li>
+<li>从<code>ActivityThread</code>的<code>mAllApplications</code>中移除<code>mInitialApplication</code></li>
+<li><code>makeApplication()</code></li>
+<li>替换<code>ActivityThread</code>中<code>mInitialApplication</code><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">super</span>.onCreate();</span><br><span class="line">Log.i(TAG,<span class="string">&quot;进入onCreate方法&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 提取提前配置的ApplicationName，来引导到源程序的Application入口</span></span><br><span class="line">String applicationName=<span class="string">&quot;&quot;</span>;</span><br><span class="line">ApplicationInfo ai=<span class="literal">null</span>;</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    ai=getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA);</span><br><span class="line">    <span class="keyword">if</span> (ai.metaData!=<span class="literal">null</span>)&#123;</span><br><span class="line">        applicationName=ai.metaData.getString(<span class="string">&quot;ApplicationName&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="keyword">catch</span> (PackageManager.NameNotFoundException e) &#123;</span><br><span class="line">    e.printStackTrace();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将当前进程的mApplication设置为null</span></span><br><span class="line">Object activityThreadObj=RefinvokeMethod.invokeStaticMethod(<span class="string">&quot;android.app.ActivityThread&quot;</span>,<span class="string">&quot;currentActivityThread&quot;</span>,<span class="keyword">new</span> <span class="title class_">Class</span>[]&#123;&#125;,<span class="keyword">new</span> <span class="title class_">Object</span>[]&#123;&#125;);</span><br><span class="line">Object mBoundApplication=RefinvokeMethod.getField(<span class="string">&quot;android.app.ActivityThread&quot;</span>,activityThreadObj,<span class="string">&quot;mBoundApplication&quot;</span>);</span><br><span class="line">Object info=RefinvokeMethod.getField(<span class="string">&quot;android.app.ActivityThread$AppBindData&quot;</span>,mBoundApplication,<span class="string">&quot;info&quot;</span>);</span><br><span class="line">RefinvokeMethod.setField(<span class="string">&quot;android.app.LoadedApk&quot;</span>,<span class="string">&quot;mApplication&quot;</span>,info,<span class="literal">null</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 从ActivityThread的mAllApplications中移除mInitialApplication</span></span><br><span class="line">Object mInitApplication=RefinvokeMethod.getField(<span class="string">&quot;android.app.ActivityThread&quot;</span>,activityThreadObj,<span class="string">&quot;mInitialApplication&quot;</span>);</span><br><span class="line">ArrayList&lt;Application&gt; mAllApplications= (ArrayList&lt;Application&gt;) RefinvokeMethod.getField(<span class="string">&quot;android.app.ActivityThread&quot;</span>,activityThreadObj,<span class="string">&quot;mAllApplications&quot;</span>);</span><br><span class="line">mAllApplications.remove(mInitApplication);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 更新两处className</span></span><br><span class="line">ApplicationInfo mApplicationInfo= (ApplicationInfo) RefinvokeMethod.getField(<span class="string">&quot;android.app.LoadedApk&quot;</span>,info,<span class="string">&quot;mApplicationInfo&quot;</span>);</span><br><span class="line">ApplicationInfo appinfo= (ApplicationInfo) RefinvokeMethod.getField(<span class="string">&quot;android.app.ActivityThread$AppBindData&quot;</span>,mBoundApplication,<span class="string">&quot;appInfo&quot;</span>);</span><br><span class="line">mApplicationInfo.className=applicationName;</span><br><span class="line">appinfo.className=applicationName;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 执行makeApplication(false,null)</span></span><br><span class="line">Application app= (Application) RefinvokeMethod.invokeMethod(<span class="string">&quot;android.app.LoadedApk&quot;</span>,<span class="string">&quot;makeApplication&quot;</span>,info,<span class="keyword">new</span> <span class="title class_">Class</span>[]&#123;<span class="type">boolean</span>.class, Instrumentation.class&#125;,<span class="keyword">new</span> <span class="title class_">Object</span>[]&#123;<span class="literal">false</span>,<span class="literal">null</span>&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 替换ActivityThread中mInitialApplication</span></span><br><span class="line">RefinvokeMethod.setField(<span class="string">&quot;android.app.ActivityThread&quot;</span>,<span class="string">&quot;mInitialApplication&quot;</span>,activityThreadObj,app);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 更新ContentProvider</span></span><br><span class="line">ArrayMap mProviderMap= (ArrayMap) RefinvokeMethod.getField(<span class="string">&quot;android.app.ActivityThread&quot;</span>,activityThreadObj,<span class="string">&quot;mProviderMap&quot;</span>);</span><br><span class="line">Iterator iterator=mProviderMap.values().iterator();</span><br><span class="line"><span class="keyword">while</span> (iterator.hasNext())&#123;</span><br><span class="line">    Object mProviderClientRecord=iterator.next();</span><br><span class="line">    Object mLocalProvider=RefinvokeMethod.getField(<span class="string">&quot;android.app.ActivityThread$ProviderClientRecord&quot;</span>,mProviderClientRecord,<span class="string">&quot;mLocalProvider&quot;</span>);</span><br><span class="line">    RefinvokeMethod.setField(<span class="string">&quot;android.content.ContentProvider&quot;</span>,<span class="string">&quot;mContext&quot;</span>,mLocalProvider,app);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 执行新app的onCreate方法</span></span><br><span class="line">app.onCreate();</span><br></pre></td></tr></table></figure>
+解释一下这里修改<code>className</code>的操作。源程序可能也有自定义的一个<code>Application</code>类，如果有的话我们需要提前配置在<code>xml</code>的<code>meta-data</code>中提前设置，之后提取出来。</li>
+</ul>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_PwReXXI_ST.png"></p>
+<p>当然也可以通过解析源程序的<code>xml</code>来实现，感兴趣可以研究一下。</p>
+</li>
+<li><p>更新<code>ContentProvider</code>。</p>
+<p><code>ContentProvider</code>是<code>Android</code>系统中的一个组件，用于在不同的应用程序之间共享数据。需要修改<code>mProviderMap</code>中所有<code>ContentProvider</code>的<code>mContext</code>为新<code>app</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">ArrayMap mProviderMap= (ArrayMap) RefinvokeMethod.getField(<span class="string">&quot;android.app.ActivityThread&quot;</span>,activityThreadObj,<span class="string">&quot;mProviderMap&quot;</span>);</span><br><span class="line">Iterator iterator=mProviderMap.values().iterator();</span><br><span class="line"><span class="keyword">while</span> (iterator.hasNext())&#123;</span><br><span class="line">    Object mProviderClientRecord=iterator.next();</span><br><span class="line">    Object mLocalProvider=RefinvokeMethod.getField(<span class="string">&quot;android.app.ActivityThread$ProviderClientRecord&quot;</span>,mProviderClientRecord,<span class="string">&quot;mLocalProvider&quot;</span>);</span><br><span class="line">    RefinvokeMethod.setField(<span class="string">&quot;android.content.ContentProvider&quot;</span>,<span class="string">&quot;mContext&quot;</span>,mLocalProvider,app);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>执行新app的<code>onCreate</code>方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">app.onCreate();</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>总体代码如下，这里用到的<code>RefinvokeMethod</code>贴到了文章最下面问题一节中。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onCreate</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="built_in">super</span>.onCreate();</span><br><span class="line"></span><br><span class="line">    loadResources(apkFileName);</span><br><span class="line">    Log.i(TAG,<span class="string">&quot;进入onCreate方法&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 提取提前配置的ApplicationName，来引导到源程序的Application入口</span></span><br><span class="line">    String applicationName=<span class="string">&quot;&quot;</span>;</span><br><span class="line">    ApplicationInfo ai=<span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        ai=getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA);</span><br><span class="line">        <span class="keyword">if</span> (ai.metaData!=<span class="literal">null</span>)&#123;</span><br><span class="line">            applicationName=ai.metaData.getString(<span class="string">&quot;ApplicationName&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (PackageManager.NameNotFoundException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将当前进程的mApplication设置为null</span></span><br><span class="line">    Object activityThreadObj=RefinvokeMethod.invokeStaticMethod(<span class="string">&quot;android.app.ActivityThread&quot;</span>,<span class="string">&quot;currentActivityThread&quot;</span>,<span class="keyword">new</span> <span class="title class_">Class</span>[]&#123;&#125;,<span class="keyword">new</span> <span class="title class_">Object</span>[]&#123;&#125;);</span><br><span class="line">    Object mBoundApplication=RefinvokeMethod.getField(<span class="string">&quot;android.app.ActivityThread&quot;</span>,activityThreadObj,<span class="string">&quot;mBoundApplication&quot;</span>);</span><br><span class="line">    Object info=RefinvokeMethod.getField(<span class="string">&quot;android.app.ActivityThread$AppBindData&quot;</span>,mBoundApplication,<span class="string">&quot;info&quot;</span>);</span><br><span class="line">    RefinvokeMethod.setField(<span class="string">&quot;android.app.LoadedApk&quot;</span>,<span class="string">&quot;mApplication&quot;</span>,info,<span class="literal">null</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 从ActivityThread的mAllApplications中移除mInitialApplication</span></span><br><span class="line">    Object mInitApplication=RefinvokeMethod.getField(<span class="string">&quot;android.app.ActivityThread&quot;</span>,activityThreadObj,<span class="string">&quot;mInitialApplication&quot;</span>);</span><br><span class="line">    ArrayList&lt;Application&gt; mAllApplications= (ArrayList&lt;Application&gt;) RefinvokeMethod.getField(<span class="string">&quot;android.app.ActivityThread&quot;</span>,activityThreadObj,<span class="string">&quot;mAllApplications&quot;</span>);</span><br><span class="line">    mAllApplications.remove(mInitApplication);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 更新两处className</span></span><br><span class="line">    ApplicationInfo mApplicationInfo= (ApplicationInfo) RefinvokeMethod.getField(<span class="string">&quot;android.app.LoadedApk&quot;</span>,info,<span class="string">&quot;mApplicationInfo&quot;</span>);</span><br><span class="line">    ApplicationInfo appinfo= (ApplicationInfo) RefinvokeMethod.getField(<span class="string">&quot;android.app.ActivityThread$AppBindData&quot;</span>,mBoundApplication,<span class="string">&quot;appInfo&quot;</span>);</span><br><span class="line">    mApplicationInfo.className=applicationName;</span><br><span class="line">    appinfo.className=applicationName;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 执行makeApplication(false,null)</span></span><br><span class="line">    Application app= (Application) RefinvokeMethod.invokeMethod(<span class="string">&quot;android.app.LoadedApk&quot;</span>,<span class="string">&quot;makeApplication&quot;</span>,info,<span class="keyword">new</span> <span class="title class_">Class</span>[]&#123;<span class="type">boolean</span>.class, Instrumentation.class&#125;,<span class="keyword">new</span> <span class="title class_">Object</span>[]&#123;<span class="literal">false</span>,<span class="literal">null</span>&#125;);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 替换ActivityThread中mInitialApplication</span></span><br><span class="line">    RefinvokeMethod.setField(<span class="string">&quot;android.app.ActivityThread&quot;</span>,<span class="string">&quot;mInitialApplication&quot;</span>,activityThreadObj,app);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 更新ContentProvider</span></span><br><span class="line">    ArrayMap mProviderMap= (ArrayMap) RefinvokeMethod.getField(<span class="string">&quot;android.app.ActivityThread&quot;</span>,activityThreadObj,<span class="string">&quot;mProviderMap&quot;</span>);</span><br><span class="line">    Iterator iterator=mProviderMap.values().iterator();</span><br><span class="line">    <span class="keyword">while</span> (iterator.hasNext())&#123;</span><br><span class="line">        Object mProviderClientRecord=iterator.next();</span><br><span class="line">        Object mLocalProvider=RefinvokeMethod.getField(<span class="string">&quot;android.app.ActivityThread$ProviderClientRecord&quot;</span>,mProviderClientRecord,<span class="string">&quot;mLocalProvider&quot;</span>);</span><br><span class="line">        RefinvokeMethod.setField(<span class="string">&quot;android.content.ContentProvider&quot;</span>,<span class="string">&quot;mContext&quot;</span>,mLocalProvider,app);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 执行新app的onCreate方法</span></span><br><span class="line">    app.onCreate();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里通过<code>Log</code>我们可能会看到报错如下</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_LNeF0BBlnj.png"></p>
+<p>这是不影响的，因为我们等于是又重新启动了一次<code>App</code>，只不过这次的<code>Application</code>设置的是源程序的<code>Application</code>。</p>
+<p>这个报错的源码位于<code>LoadedApk.java</code></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_TtWipUTxyq.png"></p>
+<hr>
+<p>可以看到我们的源程序自定义的<code>Application</code>还是成功加载了</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_3XXS0AnNLo.png"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/%E5%9B%BE%E7%89%87_y-SOnPgPAR.png"></p>
+<h3 id="4-3-8-加载资源"><a href="#4-3-8-加载资源" class="headerlink" title="4.3.8 加载资源"></a>4.3.8 加载资源</h3><p>我们通过这样的方式加载源程序，源程序的资源似乎并没有被加载进来，所以这里继续讲如何把源程序的资源加载进来。</p>
+<p>当然我们也可以直接把源程序的资源复制到壳程序下面，但加壳的目就是为了保护代码和资源，所以最好还是动态加载。</p>
+<p>这里资源加载可能还涉及到<code>Resources</code>类的更换，实现起来还有点麻烦，这里就暂且阁下不表。</p>
+<h1 id="5-问题"><a href="#5-问题" class="headerlink" title="5 问题"></a>5 问题</h1><ul>
+<li>在过程中出现 <code>Writable dex file &#39;/data/user/0/com.jok.unshell/app_opt_dex/src.apk&#39; is not allowed</code>这样的报错，原因是<code>Android14</code>有一个改动： 更安全的动态代码加载，简单来说就是打开<code>DEX</code>、<code>JAR</code>、<code>APK</code>等文件时必须将<code>DEX</code>文件设置为只读。</li>
+<li><code>RefinvokeMethod.java</code><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.lang.reflect.Field;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RefinvokeMethod</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Object <span class="title function_">invokeStaticMethod</span><span class="params">(String class_name,String method_name,Class[] classes,Object[] objects)</span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">Class</span> <span class="variable">aClass</span> <span class="operator">=</span> Class.forName(class_name);</span><br><span class="line">            <span class="type">Method</span> <span class="variable">method</span> <span class="operator">=</span> aClass.getMethod(method_name, classes);</span><br><span class="line">            <span class="keyword">return</span> method.invoke(<span class="literal">null</span>,objects);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Object <span class="title function_">invokeMethod</span><span class="params">(String class_name,String method_name,Object obj,Class[] classes,Object[] objects)</span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">Class</span> <span class="variable">aClass</span> <span class="operator">=</span> Class.forName(class_name);</span><br><span class="line">            <span class="type">Method</span> <span class="variable">method</span> <span class="operator">=</span> aClass.getMethod(method_name, classes);</span><br><span class="line">            <span class="keyword">return</span> method.invoke(obj,objects);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Object <span class="title function_">getField</span><span class="params">(String class_name,Object obj,String field_name)</span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">Class</span> <span class="variable">aClass</span> <span class="operator">=</span> Class.forName(class_name);</span><br><span class="line">            <span class="type">Field</span> <span class="variable">field</span> <span class="operator">=</span> aClass.getDeclaredField(field_name);</span><br><span class="line">            field.setAccessible(<span class="literal">true</span>);</span><br><span class="line">            <span class="keyword">return</span> field.get(obj);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Object <span class="title function_">getStaticField</span><span class="params">(String class_name,String field_name)</span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">Class</span> <span class="variable">aClass</span> <span class="operator">=</span> Class.forName(class_name);</span><br><span class="line">            <span class="type">Field</span> <span class="variable">field</span> <span class="operator">=</span> aClass.getDeclaredField(field_name);</span><br><span class="line">            field.setAccessible(<span class="literal">true</span>);</span><br><span class="line">            <span class="keyword">return</span> field.get(<span class="literal">null</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">setField</span><span class="params">(String class_name,String field_name,Object obj,Object value)</span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">Class</span> <span class="variable">aClass</span> <span class="operator">=</span> Class.forName(class_name);</span><br><span class="line">            <span class="type">Field</span> <span class="variable">field</span> <span class="operator">=</span> aClass.getDeclaredField(field_name);</span><br><span class="line">            field.setAccessible(<span class="literal">true</span>);</span><br><span class="line">            field.set(obj,value);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">setStaticField</span><span class="params">(String class_name,String field_name,Object value)</span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">Class</span> <span class="variable">aClass</span> <span class="operator">=</span> Class.forName(class_name);</span><br><span class="line">            <span class="type">Field</span> <span class="variable">field</span> <span class="operator">=</span> aClass.getDeclaredField(field_name);</span><br><span class="line">            field.setAccessible(<span class="literal">true</span>);</span><br><span class="line">            field.set(<span class="literal">null</span>,value);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>如果没在<code>xml</code>里面指定源程序的<code>Activity</code>，那就需要在壳程序的<code>attachBaseContext</code>中添加如下代码运行<code>MainActivity</code>。<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="type">Object</span> <span class="variable">objectMain</span> <span class="operator">=</span> dexClassLoader.loadClass(<span class="string">&quot;com.example.sourceapk.MainActivity&quot;</span>);</span><br><span class="line">    Log.i(TAG,<span class="string">&quot;MainActivity类加载完毕&quot;</span>);</span><br><span class="line">&#125; <span class="keyword">catch</span> (ClassNotFoundException e) &#123;</span><br><span class="line">    e.printStackTrace();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+
+<div class="article-footer fs14">
+    <section id="references">
+      <div class="header"><span>参考资料</span></div>
+      <div class="body">
+        <ul>
+        <li class="post-title">
+          <p><a target="_blank" rel="noopener" href="https://www.isisy.com/1420.html"> 安卓逆向-脱壳学习记录 - Is Yang’s Blog </a></p>
+
+        </li>
+        
+        <li class="post-title">
+          <p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MjM5NTc2MDYxMw==&mid=2458457914&idx=1&sn=1d505597b47089cbd8bdc1e6e0a2b068&chksm=b18e27b086f9aea63d4404f118b0dc4c0b87c5986f20e556a5a85c967834df0d7f3e8e6d98d6&scene=27"> Android漏洞之战——整体加壳原理和脱壳技巧详解 </a></p>
+
+        </li>
+        
+        <li class="post-title">
+          <p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/roccheung/p/5797273.html"> Android中的Apk的加固(加壳)原理解析和实现 - roccheung - 博客园 </a></p>
+
+        </li>
+        
+        <li class="post-title">
+          <p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/revercc/p/16835213.html"> android一代壳脱壳方法总结 - 怎么可以吃突突 - 博客园 </a></p>
+
+        </li>
+        
+        <li class="post-title">
+          <p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6962096676576165918"> Android脱壳之整体脱壳原理与实践这里所说的壳都是指dex加壳,不涉及到so的加壳。 涉及到的代码分析基于AOSP  - 掘金 </a></p>
+
+        </li>
+        
+        <li class="post-title">
+          <p><a target="_blank" rel="noopener" href="https://blog.csdn.net/biyusr/article/details/125872651"> 【Android 脱壳】DEX壳简单实现过程分析_mboundapplication-CSDN博客 </a></p>
+
+        </li>
+        </ul>
+      </div>
+    </section>
+    
+    <section id="license">
+      <div class="header"><span>许可协议</span></div>
+      <div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div>
+    </section>
+    </div>
+</article>
+<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"></div><div class="item" id="next"><div class="note">较早文章</div><a href="/2024/09/15/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/">安卓签名校验机制解析</a></div></section></div>
+
+
+
+
+
+
+<footer class="page-footer footnote"><hr><div class="text"><p>本站由 <a href="/">Joooook</a> 使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.29.1">Stellar 1.29.1</a> 主题创建。<br>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+</div></footer>
+<div class="main-mask" onclick="sidebar.dismiss()"></div></div><aside class="l_right">
+<div class="widgets">
+
+
+
+<widget class="widget-wrapper toc" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span><a class="cap-action" onclick="sidebar.toggleTOC()" ><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></a></div><div class="widget-body"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5"><span class="toc-text">安卓整体加壳（一代壳）原理及实践</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-text">目录</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%80%E4%BB%A3%E5%A3%B3%E7%AE%80%E4%BB%8B"><span class="toc-text">1 一代壳简介</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-DEX%E5%8A%A0%E5%AF%86%EF%BC%88%E4%B9%9F%E7%A7%B0%E8%90%BD%E5%9C%B0%E5%8A%A0%E8%BD%BD%EF%BC%89"><span class="toc-text">1.1 DEX加密（也称落地加载）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-%E7%9B%B8%E5%85%B3%E8%84%B1%E5%A3%B3%E6%96%B9%E6%B3%95"><span class="toc-text">1.2 相关脱壳方法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-app%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B"><span class="toc-text">2 app启动流程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-ActivityThread-java"><span class="toc-text">2.1 ActivityThread.java</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-LoadedApk-java"><span class="toc-text">2.2 LoadedApk.java</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-Instrumentation-java"><span class="toc-text">2.3 Instrumentation.java</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-4-Application-java"><span class="toc-text">2.4 Application.java</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-5-ActivityThread-java"><span class="toc-text">2.5 ActivityThread.java</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-text">3 基本原理</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%8A%A0%E5%A3%B3%E5%AE%9E%E8%B7%B5"><span class="toc-text">4 加壳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#4-1-%E6%BA%90%E7%A8%8B%E5%BA%8F"><span class="toc-text">4.1 源程序</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-2-%E5%8A%A0%E5%A3%B3%E5%B7%A5%E5%85%B7"><span class="toc-text">4.2 加壳工具</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-3-%E8%84%B1%E5%A3%B3%E7%A8%8B%E5%BA%8F"><span class="toc-text">4.3 脱壳程序</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-1-%E4%BB%A3%E7%90%86Application"><span class="toc-text">4.3.1 代理Application</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-2-%E8%AF%BB%E5%8F%96%E8%87%AA%E8%BA%ABapk"><span class="toc-text">4.3.2 读取自身apk</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-3-%E8%AF%BB%E5%8F%96dex"><span class="toc-text">4.3.3 读取dex</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-4-%E6%8F%90%E5%8F%96%E6%BA%90apk"><span class="toc-text">4.3.4 提取源apk</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-5-%E4%BF%AE%E6%AD%A3%E5%8A%A0%E8%BD%BD%E5%99%A8%EF%BC%88%E9%87%8D%E7%82%B9%EF%BC%89"><span class="toc-text">4.3.5 修正加载器（重点）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-6-%E5%8A%A0%E8%BD%BD%E6%BA%90apk"><span class="toc-text">4.3.6 加载源apk</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-7-%E5%8A%A0%E8%BD%BD%E6%BA%90Application"><span class="toc-text">4.3.7 加载源Application</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-8-%E5%8A%A0%E8%BD%BD%E8%B5%84%E6%BA%90"><span class="toc-text">4.3.8 加载资源</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E9%97%AE%E9%A2%98"><span class="toc-text">5 问题</span></a></li></ol></div><div class="widget-footer">
+
+<a class="top" onclick="util.scrollTop()"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12c0-4.714 0-7.071 1.464-8.536C4.93 2 7.286 2 12 2c4.714 0 7.071 0 8.535 1.464C22 4.93 22 7.286 22 12c0 4.714 0 7.071-1.465 8.535C19.072 22 16.714 22 12 22s-7.071 0-8.536-1.465C2 19.072 2 16.714 2 12Z"/><path stroke-linecap="round" stroke-linejoin="round" d="m9 15.5l3-3l3 3m-6-4l3-3l3 3"/></g></svg><span>回到顶部</span></a></div></widget>
+</div></aside><div class='float-panel blur'>
+  <button type='button' style='display:none' class='laptop-only rightbar-toggle mobile' onclick='sidebar.rightbar()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+  </button>
+  <button type='button' style='display:none' class='mobile-only leftbar-toggle mobile' onclick='sidebar.leftbar()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11c0-3.771 0-5.657 1.172-6.828C4.343 3 6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172C22 5.343 22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828C19.657 21 17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172C2 18.657 2 16.771 2 13z"/><path id="sep" stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3"/></g></svg>
+  </button>
+</div>
+</div><div class="scripts">
+<script type="text/javascript">
+  const ctx = {
+    date_suffix: {
+      just: `刚刚`,
+      min: `分钟前`,
+      hour: `小时前`,
+      day: `天前`,
+    },
+    root : `/`,
+  };
+
+  // required plugins (only load if needs)
+  if (`local_search`) {
+    ctx.search = {};
+    ctx.search.service = `local_search`;
+    if (ctx.search.service == 'local_search') {
+      let service_obj = Object.assign({}, `{"field":"all","path":"/search.json","content":true,"sort":"-date"}`);
+      ctx.search[ctx.search.service] = service_obj;
+    }
+  }
+  const def = {
+    avatar: `https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/3442075.svg`,
+    cover: `https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/cover/76b86c0226ffd.svg`,
+  };
+  const deps = {
+    jquery: `https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js`,
+    marked: `https://cdn.bootcdn.net/ajax/libs/marked/4.0.18/marked.min.js`
+  }
+  
+
+</script>
+
+<script type="text/javascript">
+  const utils = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    css: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    js: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      if (src.startsWith('/')){
+        src = ctx.root + src.substring(1);
+      }
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    jq: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        utils.js(deps.jquery).then(fn)
+      } else {
+        fn()
+      }
+    },
+    
+    onLoading: (el) => {
+      if (el) {
+        $(el).append('<div class="loading-wrap"><svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity=".3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="1.3s" values="60;0"/></path><path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.3s" values="15;0"/><animateTransform attributeName="transform" dur="1.5s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></path></g></svg></div>');
+      }
+    },
+    onLoadSuccess: (el) => {
+      if (el) {
+        $(el).find('.loading-wrap').remove();
+      }
+    },
+    onLoadFailure: (el) => {
+      if (el) {
+        $(el).find('.loading-wrap svg').remove();
+        $(el).find('.loading-wrap').append('<svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" d="M12 3L21 20H3L12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.5s" values="60;0"/></path><path stroke-dasharray="6" stroke-dashoffset="6" d="M12 10V14"><animate fill="freeze" attributeName="stroke-dashoffset" begin="0.6s" dur="0.2s" values="6;0"/></path></g><circle cx="12" cy="17" r="1" fill="currentColor" fill-opacity="0"><animate fill="freeze" attributeName="fill-opacity" begin="0.8s" dur="0.4s" values="0;1"/></circle></svg>');
+        $(el).find('.loading-wrap').addClass('error');
+      }
+    },
+    request: (el, url, callback, onFailure) => {
+      let retryTimes = 3;
+      utils.onLoading(el);
+      function req() {
+        return new Promise((resolve, reject) => {
+          let status = 0; // 0 等待 1 完成 2 超时
+          let timer = setTimeout(() => {
+            if (status === 0) {
+              status = 2;
+              timer = null;
+              reject('请求超时');
+              if (retryTimes == 0) {
+                onFailure();
+              }
+            }
+          }, 5000);
+          fetch(url).then(function(response) {
+            if (status !== 2) {
+              clearTimeout(timer);
+              resolve(response);
+              timer = null;
+              status = 1;
+            }
+            if (response.ok) {
+              return response.json();
+            }
+            throw new Error('Network response was not ok.');
+          }).then(function(data) {
+            retryTimes = 0;
+            utils.onLoadSuccess(el);
+            callback(data);
+          }).catch(function(error) {
+            if (retryTimes > 0) {
+              retryTimes -= 1;
+              setTimeout(() => {
+                req();
+              }, 5000);
+            } else {
+              utils.onLoadFailure(el);
+              onFailure();
+            }
+          });
+        });
+      }
+      req();
+    },
+  };
+</script>
+
+<script>
+  const sidebar = {
+    leftbar: () => {
+      if (l_body) {
+        l_body.toggleAttribute('leftbar');
+        l_body.removeAttribute('rightbar');
+      }
+    },
+    rightbar: () => {
+      if (l_body) {
+        l_body.toggleAttribute('rightbar');
+        l_body.removeAttribute('leftbar');
+      }
+    },
+    dismiss: () => {
+      if (l_body) {
+        l_body.removeAttribute('leftbar');
+        l_body.removeAttribute('rightbar');
+      }
+    },
+    toggleTOC: () => {
+      document.querySelector('#data-toc').classList.toggle('collapse');
+    }
+  }
+</script>
+<script type="text/javascript">
+  (() => {
+    const tagSwitchers = document.querySelectorAll('.tag-subtree.parent-tag > a > .tag-switcher-wrapper')
+    for (const tagSwitcher of tagSwitchers) {
+      tagSwitcher.addEventListener('click', (e) => {
+        const parent = e.target.closest('.tag-subtree.parent-tag')
+        parent.classList.toggle('expanded')
+        e.preventDefault()
+      })
+    }
+
+    // Get active tag from query string, then activate it.
+    const urlParams = new URLSearchParams(window.location.search)
+    const activeTag = urlParams.get('tag')
+    if (activeTag) {
+      let tag = document.querySelector(`.tag-subtree[data-tag="${activeTag}"]`)
+      if (tag) {
+        tag.querySelector('a').classList.add('active')
+        
+        while (tag) {
+          tag.classList.add('expanded')
+          tag = tag.parentElement.closest('.tag-subtree.parent-tag')
+        }
+      }
+    }
+  })()
+</script>
+
+
+<!-- required -->
+<script src="/js/main.js?v=1.29.1" defer></script>
+
+<script type="text/javascript">
+  const applyTheme = (theme) => {
+    if (theme === 'auto') {
+      document.documentElement.removeAttribute('data-theme')
+    } else {
+      document.documentElement.setAttribute('data-theme', theme)
+    }
+
+    applyThemeToGiscus(theme)
+  }
+
+  const applyThemeToGiscus = (theme) => {
+    theme = theme === 'auto' ? 'preferred_color_scheme' : theme
+
+    const cmt = document.getElementById('giscus')
+    if (cmt) {
+      // This works before giscus load.
+      cmt.setAttribute('data-theme', theme)
+    }
+
+    const iframe = document.querySelector('#comments > section.giscus > iframe')
+    if (iframe) {
+      // This works after giscus loaded.
+      const src = iframe.src
+      const newSrc = src.replace(/theme=[\w]+/, `theme=${theme}`)
+      iframe.src = newSrc
+    }
+  }
+
+  const switchTheme = () => {
+    // light -> dark -> auto -> light -> ...
+    const currentTheme = document.documentElement.getAttribute('data-theme')
+    let newTheme;
+    switch (currentTheme) {
+      case 'light':
+        newTheme = 'dark'
+        break
+      case 'dark':
+        newTheme = 'auto'
+        break
+      default:
+        newTheme = 'light'
+    }
+    applyTheme(newTheme)
+    window.localStorage.setItem('Stellar.theme', newTheme)
+
+    const messages = {
+      light: `切换到浅色模式`,
+      dark: `切换到深色模式`,
+      auto: `切换到跟随系统配色`,
+    }
+    hud?.toast?.(messages[newTheme])
+  }
+
+  (() => {
+    // Apply user's preferred theme, if any.
+    const theme = window.localStorage.getItem('Stellar.theme')
+    if (theme !== null) {
+      applyTheme(theme)
+    }
+  })()
+</script>
+
+
+<!-- optional -->
+
+
+
+<script defer>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    ctx.services = Object.assign({}, JSON.parse(`{"mdrender":{"js":"/js/services/mdrender.js"},"siteinfo":{"js":"/js/services/siteinfo.js","api":"https://site-info-api-tan.vercel.app/api/v1?url={href}"},"ghinfo":{"js":"/js/services/ghinfo.js"},"sites":{"js":"/js/services/sites.js"},"friends":{"js":"/js/services/friends.js"},"timeline":{"js":"/js/services/timeline.js"},"fcircle":{"js":"/js/services/fcircle.js"},"weibo":{"js":"/js/services/weibo.js"},"memos":{"js":"/js/services/memos.js"}}`));
+    for (let id of Object.keys(ctx.services)) {
+      const js = ctx.services[id].js;
+      if (id == 'siteinfo') {
+        ctx.cardlinks = document.querySelectorAll('a.link-card[cardlink]');
+        if (ctx.cardlinks?.length > 0) {
+          utils.js(js, { defer: true }).then(function () {
+            setCardLink(ctx.cardlinks);
+          });
+        }
+      } else {
+        const els = document.getElementsByClassName(`ds-${id}`);
+        if (els?.length > 0) {
+          utils.jq(() => {
+            if (id == 'timeline' || 'memos' || 'marked') {
+              utils.js(deps.marked).then(function () {
+                utils.js(js, { defer: true });
+              });
+            } else {
+              utils.js(js, { defer: true });
+            }
+          });
+        }
+      }
+    }
+  });
+</script>
+
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    ctx.search = {
+      path: `/search.json`,
+    }
+    utils.js('/js/search/local-search.js', { defer: true });
+  });
+</script><script>
+  window.FPConfig = {
+    delay: 0,
+    ignoreKeywords: [],
+    maxRPS: 5,
+    hoverDelay: 25
+  };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/flying-pages@2/flying-pages.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@19.1.3/dist/lazyload.min.js"></script>
+<script>
+  // https://www.npmjs.com/package/vanilla-lazyload
+  // Set the options globally
+  // to make LazyLoad self-initialize
+  window.lazyLoadOptions = {
+    elements_selector: ".lazy",
+  };
+  // Listen to the initialization event
+  // and get the instance of LazyLoad
+  window.addEventListener(
+    "LazyLoad::Initialized",
+    function (event) {
+      window.lazyLoadInstance = event.detail.instance;
+    },
+    false
+  );
+  document.addEventListener('DOMContentLoaded', function () {
+    window.lazyLoadInstance?.update();
+  });
+</script><script>
+  ctx.fancybox = {
+    selector: `.timenode p>img`,
+    css: `https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css`,
+    js: `https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js`
+  };
+  var selector = '[data-fancybox]:not(.error)';
+  if (ctx.fancybox.selector) {
+    selector += `, ${ctx.fancybox.selector}`
+  }
+  var needFancybox = document.querySelectorAll(selector).length !== 0;
+  if (!needFancybox) {
+    const els = document.getElementsByClassName('ds-memos');
+    if (els != undefined && els.length > 0) {
+      needFancybox = true;
+    }
+  }
+  if (needFancybox) {
+    utils.css(ctx.fancybox.css);
+    utils.js(ctx.fancybox.js, { defer: true }).then(function () {
+      Fancybox.bind(selector, {
+        hideScrollbar: false,
+        Thumbs: {
+          autoStart: false,
+        },
+        caption: (fancybox, slide) => {
+          return slide.triggerEl.alt || slide.triggerEl.dataset.caption || null
+        }
+      });
+    })
+  }
+</script>
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    const swiper_api = document.getElementById('swiper-api');
+    if (swiper_api != undefined) {
+      utils.css(`https://unpkg.com/swiper@10.3.1/swiper-bundle.min.css`);
+      utils.js(`https://unpkg.com/swiper@10.3.1/swiper-bundle.min.js`, { defer: true }).then(function () {
+        const effect = swiper_api.getAttribute('effect') || '';
+        var swiper = new Swiper('.swiper#swiper-api', {
+          slidesPerView: 'auto',
+          spaceBetween: 8,
+          centeredSlides: true,
+          effect: effect,
+          rewind: true,
+          pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+          },
+          navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+          },
+        });
+      })
+    }
+  });
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+    processEscapes: true
+  }
+});
+MathJax.Hub.Config({
+  tex2jax: {
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+  }
+});
+MathJax.Hub.Queue(function() {
+  var all = MathJax.Hub.getAllJax(), i;
+  for(i=0; i < all.length; i += 1) {
+    all[i].SourceElement().parentNode.className += ' has-jax';
+  }
+});
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    window.codeElements = document.querySelectorAll('.code');
+    if (window.codeElements.length > 0) {
+      ctx.copycode = {
+        default_text: `Copy`,
+        success_text: `Copied`,
+        toast: `复制成功`,
+      };
+      utils.js('/js/plugins/copycode.js');
+    }
+  });
+</script>
+
+
+<!-- inject -->
+
+</div></body></html>

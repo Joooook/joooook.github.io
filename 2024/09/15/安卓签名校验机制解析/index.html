@@ -1,0 +1,813 @@
+
+<!DOCTYPE html><html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="hexo-theme" content="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.29.1" theme-name="Stellar" theme-version="1.29.1">
+  
+  <meta name="generator" content="Hexo 7.3.0">
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000">
+  <meta name="theme-color" content="#f9fafb">
+  
+  <title>安卓签名校验机制解析 - Joooook's Blog</title>
+
+  
+    <meta name="description" content="安卓签名校验机制目录 1 V1方案 1.1 V1方案的安全性   2 V2方案 2.1 摘要计算过程 2.2 防回滚绕过   3 V3方案 4 V4方案 5 签名实践 5.1 keytool生成密钥库 5.2 jarsigner 5.3 apksigner   6 引用  安卓的签名校验机制共有三代。 9.0以上的系统会判断apk是否使用到V3版本的签名，如果有，那么按照V3版本签名校验方式进行">
+<meta property="og:type" content="article">
+<meta property="og:title" content="安卓签名校验机制解析">
+<meta property="og:url" content="http://example.com/2024/09/15/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="Joooook&#39;s Blog">
+<meta property="og:description" content="安卓签名校验机制目录 1 V1方案 1.1 V1方案的安全性   2 V2方案 2.1 摘要计算过程 2.2 防回滚绕过   3 V3方案 4 V4方案 5 签名实践 5.1 keytool生成密钥库 5.2 jarsigner 5.3 apksigner   6 引用  安卓的签名校验机制共有三代。 9.0以上的系统会判断apk是否使用到V3版本的签名，如果有，那么按照V3版本签名校验方式进行">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-02%2011.45.48_dEcDNSj8Le.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-02%2011.47.56_0OQxB3IFCj.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-02%2011.52.47_wHngTUP2eK.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-02%2011.56.54_nOQrhF8d-V.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-02%2012.14.42_MXCXSdCKHE.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-02%2012.15.35_D6ECJitO_s.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-02%2014.35.53_ho-WX_Gbcv.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-02%2014.43.33_6O_RyMPKm6.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E5%9B%BE%E7%89%87_RhVghiyZ_n.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E5%9B%BE%E7%89%87__eFqKD_wnA.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-03%2013.30.18_S_gjWj1rYN.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-03%2013.37.07_Mvv37OTVyK.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E5%9B%BE%E7%89%87_QDJOsAG1PR.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%9C%AA%E5%91%BD%E5%90%8D%E7%BB%98%E5%9B%BE.drawio_v3n-c6me2K.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-03%2016.02.19_eim1dPssdx.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E5%9B%BE%E7%89%87_Pp2HpJjaol.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E5%9B%BE%E7%89%87_5zbVk0D5D1.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E5%9B%BE%E7%89%87_gYZQYfjasu.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E5%9B%BE%E7%89%87_ZJDIsjDKV4.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E5%9B%BE%E7%89%87_9xLA5aplNn.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E5%9B%BE%E7%89%87_X6deb2Sfut.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E5%9B%BE%E7%89%87_9FL7aJ_tfn.png">
+<meta property="article:published_time" content="2024-09-15T05:09:14.131Z">
+<meta property="article:modified_time" content="2024-09-15T05:15:14.602Z">
+<meta property="article:author" content="Joooook">
+<meta property="article:tag" content="2024">
+<meta property="article:tag" content="Android">
+<meta property="article:tag" content="Signature">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-02%2011.45.48_dEcDNSj8Le.png">
+  
+  
+  
+  <meta name="keywords" content="2024,Android,Signature">
+
+  <!-- feed -->
+  
+
+  <link rel="stylesheet" href="/css/main.css?v=1.29.1">
+
+  
+
+  
+
+  
+</head>
+<body>
+
+<div class="l_body s:aa content tech" id="start" layout="post" ><aside class="l_left"><div class="leftbar-container">
+
+
+<header class="header"><div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg" style="opacity:0;background-image:url(https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/images/icon.jpg" onerror="javascript:this.classList.add('error');this.src='https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/image/2659360.svg';"></a><a class="title" href="/"><div class="main" ff="title">Joooook's Blog</div><div class="sub normal cap">Joooook</div><div class="sub hover cap" style="opacity:0">Per aspera ad astra</div></a></div></header>
+
+<div class="nav-area">
+<div class="search-wrapper" id="search-wrapper"><form class="search-form"><a class="search-button" onclick="document.getElementById(&quot;search-input&quot;).focus();"><svg t="1705074644177" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1560" width="200" height="200"><path d="M1008.839137 935.96571L792.364903 719.491476a56.783488 56.783488 0 0 0-80.152866 0 358.53545 358.53545 0 1 1 100.857314-335.166073 362.840335 362.840335 0 0 1-3.689902 170.145468 51.248635 51.248635 0 1 0 99.217358 26.444296 462.057693 462.057693 0 1 0-158.255785 242.303546l185.930047 185.725053a51.248635 51.248635 0 0 0 72.568068 0 51.248635 51.248635 0 0 0 0-72.978056z" p-id="1561"></path><path d="M616.479587 615.969233a50.428657 50.428657 0 0 0-61.498362-5.534852 174.655348 174.655348 0 0 1-177.525271 3.484907 49.403684 49.403684 0 0 0-58.833433 6.76482l-3.074918 2.869923a49.403684 49.403684 0 0 0 8.609771 78.10292 277.767601 277.767601 0 0 0 286.992355-5.739847 49.403684 49.403684 0 0 0 8.404776-76.667958z" p-id="1562"></path></svg></a><input type="text" class="search-input" id="search-input" placeholder="站内搜索"></form><div id="search-result"></div><div class="search-no-result">没有找到内容！</div></div>
+
+
+<nav class="menu dis-select"></nav>
+</div>
+<div class="widgets">
+
+
+<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">最近更新</span></div><div class="widget-body fs14"><a class="item title" href="/2024/09/15/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/"><span class="title">安卓整体加壳（一代壳）原理及实践</span></a><a class="item title" href="/2024/09/15/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/"><span class="title">安卓签名校验机制解析</span></a><a class="item title" href="/2024/09/15/%E5%AE%89%E5%8D%93%E5%BA%94%E7%94%A8%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/"><span class="title">安卓应用启动流程解析</span></a><a class="item title" href="/2024/09/15/%E5%AE%89%E5%8D%93%E7%B3%BB%E7%BB%9F%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/"><span class="title">安卓系统启动流程解析</span></a><a class="item title" href="/2024/09/15/%E5%AE%89%E5%8D%93%E6%9E%B6%E6%9E%84%E4%BB%8B%E7%BB%8D/"><span class="title">安卓架构介绍</span></a><a class="item title" href="/2024/09/15/DVM-ART%E4%BB%8B%E7%BB%8D/"><span class="title">DVM/ART介绍</span></a><a class="item title" href="/2024/04/29/H264%E7%BC%96%E7%A0%81%E5%88%86%E6%9E%90%E5%8F%8A%E9%9A%90%E5%86%99%E5%AE%9E%E8%B7%B5/"><span class="title">H264编码分析及隐写实践</span></a><a class="item title" href="/2024/04/23/GZCTF%E5%B9%B3%E5%8F%B0%E5%AF%B9%E6%8E%A5QQ%E6%9C%BA%E5%99%A8%E4%BA%BA/"><span class="title">GZCTF平台对接QQ机器人</span></a><a class="item title" href="/2024/03/22/%E7%AE%80%E6%9E%90Go%20SSTI%E5%88%A9%E7%94%A8/"><span class="title">简析Go SSTI利用</span></a><a class="item title" href="/2024/02/05/Hgame2024-Week1%20Writeup/"><span class="title">Hgame2024 Week1-Writeup</span></a></div></widget>
+</div>
+
+</div></aside><div class="l_main" id="main">
+
+
+
+
+
+<div class="article banner top">
+  <div class="content">
+    <div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
+<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/Study/">Study</a> <span class="sep"></span> <a class="cap breadcrumb-link" href="/categories/Study/Android/">Android</a></div>
+<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-09-15T05:09:14.131Z">2024-09-15</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2024-09-15T05:15:14.602Z">2024-09-15</time></span></div></div></div>
+    
+    <div class="bottom only-title">
+      
+      <div class="text-area">
+        <h1 class="text title"><span>安卓签名校验机制解析</span></h1>
+        
+      </div>
+    </div>
+    
+  </div>
+  </div><article class="md-text content"><span id="more"></span>
+<h1 id="安卓签名校验机制"><a href="#安卓签名校验机制" class="headerlink" title="安卓签名校验机制"></a>安卓签名校验机制</h1><h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#1-V1%E6%96%B9%E6%A1%88">1 V1方案</a><ul>
+<li><a href="#11-V1%E6%96%B9%E6%A1%88%E7%9A%84%E5%AE%89%E5%85%A8%E6%80%A7">1.1 V1方案的安全性</a></li>
+</ul>
+</li>
+<li><a href="#2-V2%E6%96%B9%E6%A1%88">2 V2方案</a><ul>
+<li><a href="#21-%E6%91%98%E8%A6%81%E8%AE%A1%E7%AE%97%E8%BF%87%E7%A8%8B">2.1 摘要计算过程</a></li>
+<li><a href="#22-%E9%98%B2%E5%9B%9E%E6%BB%9A%E7%BB%95%E8%BF%87">2.2 防回滚绕过</a></li>
+</ul>
+</li>
+<li><a href="#3-V3%E6%96%B9%E6%A1%88">3 V3方案</a></li>
+<li><a href="#4-V4%E6%96%B9%E6%A1%88">4 V4方案</a></li>
+<li><a href="#5-%E7%AD%BE%E5%90%8D%E5%AE%9E%E8%B7%B5">5 签名实践</a><ul>
+<li><a href="#51-keytool%E7%94%9F%E6%88%90%E5%AF%86%E9%92%A5%E5%BA%93">5.1 keytool生成密钥库</a></li>
+<li><a href="#52-jarsigner">5.2 jarsigner</a></li>
+<li><a href="#53-apksigner">5.3 apksigner</a></li>
+</ul>
+</li>
+<li><a href="#6-%E5%BC%95%E7%94%A8">6 引用</a></li>
+</ul>
+<p>安卓的签名校验机制共有三代。</p>
+<p>9.0以上的系统会判断apk是否使用到V3版本的签名，如果有，那么按照V3版本签名校验方式进行校验校验成功直接安装，校验失败拒绝安装；如果apk不是使用V3签名，判断是不是使用V2,如果没有使用V2那么再判断是不是使用V1的签名。</p>
+<h1 id="1-V1方案"><a href="#1-V1方案" class="headerlink" title="1 V1方案"></a>1 V1方案</h1><p>v1签名后会增加<code>META-INF</code>文件夹，其中会有如下三个文件：</p>
+<ul>
+<li><code>MANIFEST.MF</code>：储存apk中每一个文件的摘要。</li>
+<li><code>*.SF</code>：<code>MANIFEST.MF</code> 文件的摘要信息以及 <code>MANIFEST.MF</code> 文件当中每个条目在用摘要算法计算得到的摘要信息。</li>
+<li><code>*.RSA</code>：包含<code>*.SF</code>的签名及签名的公钥证书</li>
+</ul>
+<p>以小米万能遥控的包<code>apk</code>为例</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-02%2011.45.48_dEcDNSj8Le.png"></p>
+<p><code>META-INF</code>文件夹</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-02%2011.47.56_0OQxB3IFCj.png"></p>
+<p><code>MANIFEST.MF</code>储存了文件名及其<code>SHA256</code>摘要的<code>base64</code>编码</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-02%2011.52.47_wHngTUP2eK.png"></p>
+<p><code>*.SF</code>比<code>MANIFEST.MF</code>多了<code>MANIFEST.MF</code>的摘要，并且对<code>MANIFEST.MF</code>中的每个模块都进行了摘要。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-02%2011.56.54_nOQrhF8d-V.png"></p>
+<p>如何区别一个模块，查看文件的十六进制，一个模块是以<code>0D0A0D0A</code>结尾的，其实就是两次换行。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-02%2012.14.42_MXCXSdCKHE.png"></p>
+<p>取<code>AndroidManifest.xml</code>模块来验证</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-02%2012.15.35_D6ECJitO_s.png"></p>
+<p><code>*.RSA</code>是<code>PKCS#7格式</code>的数据经过<code>ASN.1 DER规则编码</code>之后的二进制文件</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-02%2014.35.53_ho-WX_Gbcv.png"></p>
+<p>使用以下命令行读取</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl pkcs7 -inform DER -in &lt;*.RSA文件路径&gt; -text -noout -print_certs</span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-02%2014.43.33_6O_RyMPKm6.png"></p>
+<h2 id="1-1-V1方案的安全性"><a href="#1-1-V1方案的安全性" class="headerlink" title="1.1 V1方案的安全性"></a>1.1 V1方案的安全性</h2><p>APK 包的完整性校验不够强。如果我们在 APK 签名后，对 APK 包中<strong>没有涉及到原始文件的数据块做改变</strong>，那么这层校验机制就会失效。</p>
+<h1 id="2-V2方案"><a href="#2-V2方案" class="headerlink" title="2 V2方案"></a>2 V2方案</h1><p>APK 签名方案 v2 是一种全文件签名方案，该方案能够发现对 APK 受保护部分进行的所有更改</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E5%9B%BE%E7%89%87_RhVghiyZ_n.png"></p>
+<p>APK Signing Bolck 由这几个部分组成：</p>
+<table>
+<thead>
+<tr>
+<th>偏移</th>
+<th>字节数</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>@0</td>
+<td>8</td>
+<td>这个 Block 的长度（本字段的长度不计算在内）</td>
+</tr>
+<tr>
+<td>@8</td>
+<td>n</td>
+<td>一组 ID-value</td>
+</tr>
+<tr>
+<td>@-24</td>
+<td>8</td>
+<td>这个 Bolck 的长度（和第一个字段一样值）</td>
+</tr>
+<tr>
+<td>@-16</td>
+<td>16</td>
+<td>魔数 “APK Sig Block 42”</td>
+</tr>
+</tbody></table>
+<p>具体结构如下</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E5%9B%BE%E7%89%87__eFqKD_wnA.png" alt="来源 https://blog.csdn.net/qq\_43278826/article/details/119237062" title="来源 https://blog.csdn.net/qq_43278826/article/details/119237062"></p>
+<p><code>ID = 0x7109871a</code>的键值对块就是保存V2签名信息的地方。开头示例如下</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-03%2013.30.18_S_gjWj1rYN.png"></p>
+<p>结尾处示例</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-03%2013.37.07_Mvv37OTVyK.png"></p>
+<p>美团团队通过自定义ID，可以用来生成渠道包<a target="_blank" rel="noopener" href="https://tech.meituan.com/2017/01/13/android-apk-v2-signature-scheme.html" title="https://tech.meituan.com/2017/01/13/android-apk-v2-signature-scheme.html">https://tech.meituan.com/2017/01/13/android-apk-v2-signature-scheme.html</a></p>
+<p><code>ID = 0x7109871a</code>的键值对块中的<code>Value</code>储存的是<code>v2</code>签名信息。</p>
+<p>其中可以保存了一份或者多份APK签名信息（多个签名者）。</p>
+<p><code>Value</code>的内容结果如下</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E5%9B%BE%E7%89%87_QDJOsAG1PR.png" alt="来源 https://blog.csdn.net/qq\_43278826/article/details/119237062" title="来源 https://blog.csdn.net/qq_43278826/article/details/119237062"></p>
+<p>具体如下</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%9C%AA%E5%91%BD%E5%90%8D%E7%BB%98%E5%9B%BE.drawio_v3n-c6me2K.png"></p>
+<p>示例分析。红框部分为摘要，紫框部分为证书。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E6%88%AA%E5%B1%8F2024-09-03%2016.02.19_eim1dPssdx.png"></p>
+<h2 id="2-1-摘要计算过程"><a href="#2-1-摘要计算过程" class="headerlink" title="2.1 摘要计算过程"></a>2.1 摘要计算过程</h2><p>摘要计算只针对原始<code>zip</code>内容</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E5%9B%BE%E7%89%87_Pp2HpJjaol.png"></p>
+<ul>
+<li><p>拆分块chunk</p>
+<p>将每个部分（即上面标注第1、3、4部分）拆分成多个大小为 1 MB大小的块chunk，最后一个块chunk可能小于1MB。之所以分块，是为了可以通过并行计算摘要以加快计算速度</p>
+</li>
+<li><p>计算块chunk摘要</p>
+<p><code>0xa5 + chunk长度（字节数） + chunk内容</code> 拼接起来用对应的摘要算法进行计算出每一块的摘要值；</p>
+</li>
+<li><p>计算整体摘要</p>
+<p><code>0x5a + chunk数 + chunk摘要</code>（按块在 APK 中的顺序）拼接起来用对应的摘要算法进行计算出整体的摘要值</p>
+</li>
+</ul>
+<h2 id="2-2-防回滚绕过"><a href="#2-2-防回滚绕过" class="headerlink" title="2.2 防回滚绕过"></a>2.2 防回滚绕过</h2><p>为了防止攻击者删除<code>apk</code>中的<code>v2</code>方案从而绕过，带 <code>v2</code> 签名的 <code>APK</code>如果还带 <code>V1</code> 签名，其 <code>META-INF/*.SF</code> 文件的主要部分中必须包含 <code>X-Android-APK-Signed</code> 属性。</p>
+<h1 id="3-V3方案"><a href="#3-V3方案" class="headerlink" title="3 V3方案"></a>3 V3方案</h1><p>APK 的 v3 签名存储为 ID 值对，ID 为 0xf05368c0。v3 方案的设计与v2 方案非常相似。它具有相同的通用格式，添加了有关支持的SDK版本和proof-of-rotation结构的信息。</p>
+<p>简单来说APK v3就是为了Andorid9的APK 密钥轮替功能而出现的，就是在v2的基础上增加两个数据块来存储APK 密钥轮替（更新签名密钥）所需要的一些信息，所以可以看成是v2的升级。具体结构见官网说明即可。</p>
+<h1 id="4-V4方案"><a href="#4-V4方案" class="headerlink" title="4 V4方案"></a>4 V4方案</h1><p>APK v4是为了ADB 增量 APK 安装出现的</p>
+<p>增量更新是基于 BSDiff 这个差量更新算法，基于两个 apk 字节码的差异，在服务端生成 patch 包，然后客户端通过同样的算法，把已安装的 apk 与 patch 包结合生成更新后的apk进行安装，以此减小 app 版本升级时的下载时间，提高更新效率。</p>
+<p>签名方式和v2v3有所不同。</p>
+<h1 id="5-签名实践"><a href="#5-签名实践" class="headerlink" title="5 签名实践"></a>5 签名实践</h1><p>以下介绍<code>jarsigner</code>和<code>apksigner</code>签名工具的使用。</p>
+<ul>
+<li><code>jarsigner</code>是<code>JDK</code>提供的针对<code>jar</code>包签名的通用工具,位置在<code>JDK/bin/jarsigner</code></li>
+<li><code>apksigner</code>是Google官方提供的针对Android apk签名及验证的专用工具,位置在<code>Android SDK/build-tools/SDK版本/apksigner</code></li>
+</ul>
+<p>但这两种工具的签名都要使用到密钥库文件，所以顺便介绍密钥库生成。</p>
+<h2 id="5-1-keytool生成密钥库"><a href="#5-1-keytool生成密钥库" class="headerlink" title="5.1 keytool生成密钥库"></a>5.1 keytool生成密钥库</h2><p>使用<code>keytool</code>生成密钥库</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">keytool -genkey -keyalg RSA -keystore (指定密钥库文件名) demo.keystore</span><br></pre></td></tr></table></figure>
+
+<p>填写信息即可生成，</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E5%9B%BE%E7%89%87_5zbVk0D5D1.png"></p>
+<p>这个条目名字也是要用到的</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E5%9B%BE%E7%89%87_gYZQYfjasu.png"></p>
+<p>或者我们可以指定条目名字</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">﻿﻿keytool -genkey -keyalg RSA -keystore demo1.keystore -<span class="built_in">alias</span> <span class="built_in">test</span></span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E5%9B%BE%E7%89%87_ZJDIsjDKV4.png"></p>
+<h2 id="5-2-jarsigner"><a href="#5-2-jarsigner" class="headerlink" title="5.2 jarsigner"></a>5.2 jarsigner</h2><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E5%9B%BE%E7%89%87_9xLA5aplNn.png"></p>
+<p>签名命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jarsigner -keystore 密钥库名 xxx.apk 密钥别名</span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E5%9B%BE%E7%89%87_X6deb2Sfut.png"></p>
+<p>还有以下两个参数比较重要</p>
+<ul>
+<li><code>-digestalg</code> 摘要算法</li>
+<li><code>-sigalg</code> 签名算法</li>
+</ul>
+<h2 id="5-3-apksigner"><a href="#5-3-apksigner" class="headerlink" title="5.3 apksigner"></a>5.3 apksigner</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apksigner sign --ks demo1.keystore --ks-key-alias <span class="built_in">test</span> app-debug.apk</span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90/%E5%9B%BE%E7%89%87_9FL7aJ_tfn.png"></p>
+<p><code>apksigner</code>默认开启<code>v1</code>和<code>v2</code>签名，可以用以下参数关闭。</p>
+<ul>
+<li><code>--v1-signing-enabled</code> <code>false</code></li>
+<li><code>--v2-signing-enabled</code> <code>false</code></li>
+</ul>
+
+<div class="article-footer fs14">
+    <section id="references">
+      <div class="header"><span>参考资料</span></div>
+      <div class="body">
+        <ul>
+        <li class="post-title">
+          <p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43278826/article/details/119237062"> Android V2签名与校验原理分析-CSDN </a></p>
+
+        </li>
+        
+        <li class="post-title">
+          <p><a target="_blank" rel="noopener" href="https://github.com/Omooo/Android-Notes/blob/master/blogs/Android/Framework/Android%20%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6.md">签名校验机制.md-Github </a></p>
+
+        </li>
+        
+        <li class="post-title">
+          <p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1914750"> AndroidV1,V2,V3签名原理详解-腾讯云开发者社区-腾讯云 </a></p>
+
+        </li>
+        
+        <li class="post-title">
+          <p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/604007666"> Android apk之v1、v2、v3签名-知乎 </a></p>
+
+        </li>
+        
+        <li class="post-title">
+          <p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43278826/article/details/119237062"> Android V2签名与校验原理分析_v2 方案校验不通过-CSDN博客 </a></p>
+
+        </li>
+        
+        <li class="post-title">
+          <p><a target="_blank" rel="noopener" href="https://blog.csdn.net/xzytl60937234/article/details/89088215"> Android中APK签名工具之jarsigner和apksigner详解-CSDN博客 </a></p>
+
+        </li>
+        </ul>
+      </div>
+    </section>
+    
+    <section id="license">
+      <div class="header"><span>许可协议</span></div>
+      <div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div>
+    </section>
+    </div>
+</article>
+<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"><div class="note">较新文章</div><a href="/2024/09/15/%E5%AE%89%E5%8D%93%E6%95%B4%E4%BD%93%E5%8A%A0%E5%A3%B3%EF%BC%88%E4%B8%80%E4%BB%A3%E5%A3%B3%EF%BC%89%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E8%B7%B5/">安卓整体加壳（一代壳）原理及实践</a></div><div class="item" id="next"><div class="note">较早文章</div><a href="/2024/09/15/%E5%AE%89%E5%8D%93%E5%BA%94%E7%94%A8%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/">安卓应用启动流程解析</a></div></section></div>
+
+
+
+
+
+
+<footer class="page-footer footnote"><hr><div class="text"><p>本站由 <a href="/">Joooook</a> 使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.29.1">Stellar 1.29.1</a> 主题创建。<br>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+</div></footer>
+<div class="main-mask" onclick="sidebar.dismiss()"></div></div><aside class="l_right">
+<div class="widgets">
+
+
+
+<widget class="widget-wrapper toc" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span><a class="cap-action" onclick="sidebar.toggleTOC()" ><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></a></div><div class="widget-body"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%89%E5%8D%93%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C%E6%9C%BA%E5%88%B6"><span class="toc-text">安卓签名校验机制</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-text">目录</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-V1%E6%96%B9%E6%A1%88"><span class="toc-text">1 V1方案</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-V1%E6%96%B9%E6%A1%88%E7%9A%84%E5%AE%89%E5%85%A8%E6%80%A7"><span class="toc-text">1.1 V1方案的安全性</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-V2%E6%96%B9%E6%A1%88"><span class="toc-text">2 V2方案</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-%E6%91%98%E8%A6%81%E8%AE%A1%E7%AE%97%E8%BF%87%E7%A8%8B"><span class="toc-text">2.1 摘要计算过程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-%E9%98%B2%E5%9B%9E%E6%BB%9A%E7%BB%95%E8%BF%87"><span class="toc-text">2.2 防回滚绕过</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-V3%E6%96%B9%E6%A1%88"><span class="toc-text">3 V3方案</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-V4%E6%96%B9%E6%A1%88"><span class="toc-text">4 V4方案</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E7%AD%BE%E5%90%8D%E5%AE%9E%E8%B7%B5"><span class="toc-text">5 签名实践</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#5-1-keytool%E7%94%9F%E6%88%90%E5%AF%86%E9%92%A5%E5%BA%93"><span class="toc-text">5.1 keytool生成密钥库</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-2-jarsigner"><span class="toc-text">5.2 jarsigner</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-3-apksigner"><span class="toc-text">5.3 apksigner</span></a></li></ol></li></ol></div><div class="widget-footer">
+
+<a class="top" onclick="util.scrollTop()"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12c0-4.714 0-7.071 1.464-8.536C4.93 2 7.286 2 12 2c4.714 0 7.071 0 8.535 1.464C22 4.93 22 7.286 22 12c0 4.714 0 7.071-1.465 8.535C19.072 22 16.714 22 12 22s-7.071 0-8.536-1.465C2 19.072 2 16.714 2 12Z"/><path stroke-linecap="round" stroke-linejoin="round" d="m9 15.5l3-3l3 3m-6-4l3-3l3 3"/></g></svg><span>回到顶部</span></a></div></widget>
+</div></aside><div class='float-panel blur'>
+  <button type='button' style='display:none' class='laptop-only rightbar-toggle mobile' onclick='sidebar.rightbar()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+  </button>
+  <button type='button' style='display:none' class='mobile-only leftbar-toggle mobile' onclick='sidebar.leftbar()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11c0-3.771 0-5.657 1.172-6.828C4.343 3 6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172C22 5.343 22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828C19.657 21 17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172C2 18.657 2 16.771 2 13z"/><path id="sep" stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3"/></g></svg>
+  </button>
+</div>
+</div><div class="scripts">
+<script type="text/javascript">
+  const ctx = {
+    date_suffix: {
+      just: `刚刚`,
+      min: `分钟前`,
+      hour: `小时前`,
+      day: `天前`,
+    },
+    root : `/`,
+  };
+
+  // required plugins (only load if needs)
+  if (`local_search`) {
+    ctx.search = {};
+    ctx.search.service = `local_search`;
+    if (ctx.search.service == 'local_search') {
+      let service_obj = Object.assign({}, `{"field":"all","path":"/search.json","content":true,"sort":"-date"}`);
+      ctx.search[ctx.search.service] = service_obj;
+    }
+  }
+  const def = {
+    avatar: `https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/3442075.svg`,
+    cover: `https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/cover/76b86c0226ffd.svg`,
+  };
+  const deps = {
+    jquery: `https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js`,
+    marked: `https://cdn.bootcdn.net/ajax/libs/marked/4.0.18/marked.min.js`
+  }
+  
+
+</script>
+
+<script type="text/javascript">
+  const utils = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    css: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    js: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      if (src.startsWith('/')){
+        src = ctx.root + src.substring(1);
+      }
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    jq: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        utils.js(deps.jquery).then(fn)
+      } else {
+        fn()
+      }
+    },
+    
+    onLoading: (el) => {
+      if (el) {
+        $(el).append('<div class="loading-wrap"><svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity=".3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="1.3s" values="60;0"/></path><path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.3s" values="15;0"/><animateTransform attributeName="transform" dur="1.5s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></path></g></svg></div>');
+      }
+    },
+    onLoadSuccess: (el) => {
+      if (el) {
+        $(el).find('.loading-wrap').remove();
+      }
+    },
+    onLoadFailure: (el) => {
+      if (el) {
+        $(el).find('.loading-wrap svg').remove();
+        $(el).find('.loading-wrap').append('<svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" d="M12 3L21 20H3L12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.5s" values="60;0"/></path><path stroke-dasharray="6" stroke-dashoffset="6" d="M12 10V14"><animate fill="freeze" attributeName="stroke-dashoffset" begin="0.6s" dur="0.2s" values="6;0"/></path></g><circle cx="12" cy="17" r="1" fill="currentColor" fill-opacity="0"><animate fill="freeze" attributeName="fill-opacity" begin="0.8s" dur="0.4s" values="0;1"/></circle></svg>');
+        $(el).find('.loading-wrap').addClass('error');
+      }
+    },
+    request: (el, url, callback, onFailure) => {
+      let retryTimes = 3;
+      utils.onLoading(el);
+      function req() {
+        return new Promise((resolve, reject) => {
+          let status = 0; // 0 等待 1 完成 2 超时
+          let timer = setTimeout(() => {
+            if (status === 0) {
+              status = 2;
+              timer = null;
+              reject('请求超时');
+              if (retryTimes == 0) {
+                onFailure();
+              }
+            }
+          }, 5000);
+          fetch(url).then(function(response) {
+            if (status !== 2) {
+              clearTimeout(timer);
+              resolve(response);
+              timer = null;
+              status = 1;
+            }
+            if (response.ok) {
+              return response.json();
+            }
+            throw new Error('Network response was not ok.');
+          }).then(function(data) {
+            retryTimes = 0;
+            utils.onLoadSuccess(el);
+            callback(data);
+          }).catch(function(error) {
+            if (retryTimes > 0) {
+              retryTimes -= 1;
+              setTimeout(() => {
+                req();
+              }, 5000);
+            } else {
+              utils.onLoadFailure(el);
+              onFailure();
+            }
+          });
+        });
+      }
+      req();
+    },
+  };
+</script>
+
+<script>
+  const sidebar = {
+    leftbar: () => {
+      if (l_body) {
+        l_body.toggleAttribute('leftbar');
+        l_body.removeAttribute('rightbar');
+      }
+    },
+    rightbar: () => {
+      if (l_body) {
+        l_body.toggleAttribute('rightbar');
+        l_body.removeAttribute('leftbar');
+      }
+    },
+    dismiss: () => {
+      if (l_body) {
+        l_body.removeAttribute('leftbar');
+        l_body.removeAttribute('rightbar');
+      }
+    },
+    toggleTOC: () => {
+      document.querySelector('#data-toc').classList.toggle('collapse');
+    }
+  }
+</script>
+<script type="text/javascript">
+  (() => {
+    const tagSwitchers = document.querySelectorAll('.tag-subtree.parent-tag > a > .tag-switcher-wrapper')
+    for (const tagSwitcher of tagSwitchers) {
+      tagSwitcher.addEventListener('click', (e) => {
+        const parent = e.target.closest('.tag-subtree.parent-tag')
+        parent.classList.toggle('expanded')
+        e.preventDefault()
+      })
+    }
+
+    // Get active tag from query string, then activate it.
+    const urlParams = new URLSearchParams(window.location.search)
+    const activeTag = urlParams.get('tag')
+    if (activeTag) {
+      let tag = document.querySelector(`.tag-subtree[data-tag="${activeTag}"]`)
+      if (tag) {
+        tag.querySelector('a').classList.add('active')
+        
+        while (tag) {
+          tag.classList.add('expanded')
+          tag = tag.parentElement.closest('.tag-subtree.parent-tag')
+        }
+      }
+    }
+  })()
+</script>
+
+
+<!-- required -->
+<script src="/js/main.js?v=1.29.1" defer></script>
+
+<script type="text/javascript">
+  const applyTheme = (theme) => {
+    if (theme === 'auto') {
+      document.documentElement.removeAttribute('data-theme')
+    } else {
+      document.documentElement.setAttribute('data-theme', theme)
+    }
+
+    applyThemeToGiscus(theme)
+  }
+
+  const applyThemeToGiscus = (theme) => {
+    theme = theme === 'auto' ? 'preferred_color_scheme' : theme
+
+    const cmt = document.getElementById('giscus')
+    if (cmt) {
+      // This works before giscus load.
+      cmt.setAttribute('data-theme', theme)
+    }
+
+    const iframe = document.querySelector('#comments > section.giscus > iframe')
+    if (iframe) {
+      // This works after giscus loaded.
+      const src = iframe.src
+      const newSrc = src.replace(/theme=[\w]+/, `theme=${theme}`)
+      iframe.src = newSrc
+    }
+  }
+
+  const switchTheme = () => {
+    // light -> dark -> auto -> light -> ...
+    const currentTheme = document.documentElement.getAttribute('data-theme')
+    let newTheme;
+    switch (currentTheme) {
+      case 'light':
+        newTheme = 'dark'
+        break
+      case 'dark':
+        newTheme = 'auto'
+        break
+      default:
+        newTheme = 'light'
+    }
+    applyTheme(newTheme)
+    window.localStorage.setItem('Stellar.theme', newTheme)
+
+    const messages = {
+      light: `切换到浅色模式`,
+      dark: `切换到深色模式`,
+      auto: `切换到跟随系统配色`,
+    }
+    hud?.toast?.(messages[newTheme])
+  }
+
+  (() => {
+    // Apply user's preferred theme, if any.
+    const theme = window.localStorage.getItem('Stellar.theme')
+    if (theme !== null) {
+      applyTheme(theme)
+    }
+  })()
+</script>
+
+
+<!-- optional -->
+
+
+
+<script defer>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    ctx.services = Object.assign({}, JSON.parse(`{"mdrender":{"js":"/js/services/mdrender.js"},"siteinfo":{"js":"/js/services/siteinfo.js","api":"https://site-info-api-tan.vercel.app/api/v1?url={href}"},"ghinfo":{"js":"/js/services/ghinfo.js"},"sites":{"js":"/js/services/sites.js"},"friends":{"js":"/js/services/friends.js"},"timeline":{"js":"/js/services/timeline.js"},"fcircle":{"js":"/js/services/fcircle.js"},"weibo":{"js":"/js/services/weibo.js"},"memos":{"js":"/js/services/memos.js"}}`));
+    for (let id of Object.keys(ctx.services)) {
+      const js = ctx.services[id].js;
+      if (id == 'siteinfo') {
+        ctx.cardlinks = document.querySelectorAll('a.link-card[cardlink]');
+        if (ctx.cardlinks?.length > 0) {
+          utils.js(js, { defer: true }).then(function () {
+            setCardLink(ctx.cardlinks);
+          });
+        }
+      } else {
+        const els = document.getElementsByClassName(`ds-${id}`);
+        if (els?.length > 0) {
+          utils.jq(() => {
+            if (id == 'timeline' || 'memos' || 'marked') {
+              utils.js(deps.marked).then(function () {
+                utils.js(js, { defer: true });
+              });
+            } else {
+              utils.js(js, { defer: true });
+            }
+          });
+        }
+      }
+    }
+  });
+</script>
+
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    ctx.search = {
+      path: `/search.json`,
+    }
+    utils.js('/js/search/local-search.js', { defer: true });
+  });
+</script><script>
+  window.FPConfig = {
+    delay: 0,
+    ignoreKeywords: [],
+    maxRPS: 5,
+    hoverDelay: 25
+  };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/flying-pages@2/flying-pages.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@19.1.3/dist/lazyload.min.js"></script>
+<script>
+  // https://www.npmjs.com/package/vanilla-lazyload
+  // Set the options globally
+  // to make LazyLoad self-initialize
+  window.lazyLoadOptions = {
+    elements_selector: ".lazy",
+  };
+  // Listen to the initialization event
+  // and get the instance of LazyLoad
+  window.addEventListener(
+    "LazyLoad::Initialized",
+    function (event) {
+      window.lazyLoadInstance = event.detail.instance;
+    },
+    false
+  );
+  document.addEventListener('DOMContentLoaded', function () {
+    window.lazyLoadInstance?.update();
+  });
+</script><script>
+  ctx.fancybox = {
+    selector: `.timenode p>img`,
+    css: `https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css`,
+    js: `https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js`
+  };
+  var selector = '[data-fancybox]:not(.error)';
+  if (ctx.fancybox.selector) {
+    selector += `, ${ctx.fancybox.selector}`
+  }
+  var needFancybox = document.querySelectorAll(selector).length !== 0;
+  if (!needFancybox) {
+    const els = document.getElementsByClassName('ds-memos');
+    if (els != undefined && els.length > 0) {
+      needFancybox = true;
+    }
+  }
+  if (needFancybox) {
+    utils.css(ctx.fancybox.css);
+    utils.js(ctx.fancybox.js, { defer: true }).then(function () {
+      Fancybox.bind(selector, {
+        hideScrollbar: false,
+        Thumbs: {
+          autoStart: false,
+        },
+        caption: (fancybox, slide) => {
+          return slide.triggerEl.alt || slide.triggerEl.dataset.caption || null
+        }
+      });
+    })
+  }
+</script>
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    const swiper_api = document.getElementById('swiper-api');
+    if (swiper_api != undefined) {
+      utils.css(`https://unpkg.com/swiper@10.3.1/swiper-bundle.min.css`);
+      utils.js(`https://unpkg.com/swiper@10.3.1/swiper-bundle.min.js`, { defer: true }).then(function () {
+        const effect = swiper_api.getAttribute('effect') || '';
+        var swiper = new Swiper('.swiper#swiper-api', {
+          slidesPerView: 'auto',
+          spaceBetween: 8,
+          centeredSlides: true,
+          effect: effect,
+          rewind: true,
+          pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+          },
+          navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+          },
+        });
+      })
+    }
+  });
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+    processEscapes: true
+  }
+});
+MathJax.Hub.Config({
+  tex2jax: {
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+  }
+});
+MathJax.Hub.Queue(function() {
+  var all = MathJax.Hub.getAllJax(), i;
+  for(i=0; i < all.length; i += 1) {
+    all[i].SourceElement().parentNode.className += ' has-jax';
+  }
+});
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    window.codeElements = document.querySelectorAll('.code');
+    if (window.codeElements.length > 0) {
+      ctx.copycode = {
+        default_text: `Copy`,
+        success_text: `Copied`,
+        toast: `复制成功`,
+      };
+      utils.js('/js/plugins/copycode.js');
+    }
+  });
+</script>
+
+
+<!-- inject -->
+
+</div></body></html>
